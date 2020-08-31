@@ -33,7 +33,8 @@
               <div class="scroll-content">
                 <van-button
                   round
-                  color="linear-gradient(to right, #4bb0ff, #6149f6)"
+                  color="#7232dd"
+                  plain
                   v-for="(episode,index) in limitedEpisodeList"
                   :key="index"
                   class="scroll-item"
@@ -84,11 +85,7 @@
           <div class="scroll-content">
             <ul>
               <li v-for="(episode,index) in episodeList" :key="index">
-                <van-button
-                  round
-                  color="linear-gradient(to right, #4bb0ff, #6149f6)"
-                  class="scroll-item"
-                >
+                <van-button round class="scroll-item">
                   <span>{{episode.episode}}</span>
                 </van-button>
               </li>
