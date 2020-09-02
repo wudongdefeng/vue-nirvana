@@ -148,6 +148,20 @@ export default {
   },
   methods: {
     getData() {
+      requestAsync(
+        "https://api.simpleplay.cn/api/programmes/5ed756c0d363dc00350f6815",
+        {
+          headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            "Device-ID": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
+            "User-Agent": "Viewer/2.1.2 Android/5.1.1 Phone/samsung-SM-N9760",
+          },
+          method: "GET",
+        },
+        (key, result) => {
+          console.log(result)
+        }
+      );
       axios({
         url: "/juhui/api/programmes/5ed756c0d363dc00350f6815",
         method: "get",
@@ -156,6 +170,7 @@ export default {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       }).then((res) => {
+        // console.log(res);
         let data = res.data.data.programme;
         let classifications = [...data.classifications];
         let tag = "";
