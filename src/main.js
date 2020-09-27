@@ -5,6 +5,7 @@ import store from './store'
 import Vant from 'vant';
 import 'vant/lib/index.css';
 import '@vant/touch-emulator';
+import '@/styles/index.less' // global css
 
 Vue.use(Vant);
 
