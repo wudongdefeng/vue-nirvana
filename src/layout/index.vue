@@ -3,7 +3,27 @@
     <van-sticky>
       <van-nav-bar :title="title" left-text="返回" left-arrow>
         <template #right>
-          <van-icon name="search" size="18" />
+          <a href="hiker://search?s=**">
+            <van-icon
+              name="search"
+              size="18"
+              color="rgba(34, 34, 34, 255)"
+              @click="hikerSearch"
+          /></a>
+        </template>
+        <template #left>
+          <van-icon
+            name="arrow-left"
+            size="18"
+            color="rgba(34, 34, 34, 255)"
+            @click="hikerHome"
+          />
+          <span
+            class="van-nav-bar__text"
+            style="color: rgba(34, 34, 34, 255)"
+            @click="hikerHome"
+            >返回</span
+          >
         </template>
       </van-nav-bar>
     </van-sticky>
@@ -19,6 +39,14 @@ export default {
     ...mapGetters(["title"]),
   },
   components: { AppMain },
+  methods: {
+    hikerSearch() {
+      window.location.href = "hiker://search?s=**";
+    },
+    hikerHome() {
+      window.location.href = "hiker://home";
+    },
+  },
 };
 </script>
 

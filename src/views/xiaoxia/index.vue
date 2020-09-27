@@ -1,26 +1,46 @@
 <template>
   <div>
+    <van-overlay class="loadingBox" :show="showOverlay">
+      <van-loading size="24px">加载中...</van-loading>
+    </van-overlay>
     <van-pull-refresh
       v-model="isLoading"
       @refresh="onRefresh"
       style="min-height: calc(100vh - 46px)"
     >
-      <van-overlay class="loadingBox" :show="showOverlay">
-        <van-loading size="24px">加载中...</van-loading>
-      </van-overlay>
-      <div class="hello">
+      <div>
         <div class="details">
-          <span class="setting">
+          <!-- <span class="setting">
             <van-icon name="setting-o" size="20" />
-          </span>
+          </span> -->
           <div class="box">
-            <van-image round :src="mengmaindata.coverImageUrl" />
             <div class="detail">
-              <h1>
-                <span>{{ mengmaindata.title }}</span>
-              </h1>
-              <p>{{ mengmaindata.area }}</p>
-              <p>{{ mengmaindata.updateTime }}</p>
+              <div class="header-title">
+                <span class="title">{{ mengmaindata.title }}</span>
+              </div>
+              <div>
+                <!-- <span class="subtitle-item">{{ mengmaindata.area }}</span>
+                <span class="subtitle-item dot">{{
+                  mengmaindata.updateTime
+                }}</span> -->
+                <span
+                  :class="index == 0 ? 'subtitle-item' : 'subtitle-item dot'"
+                  v-for="(item, index) in subtitleArr"
+                  :key="index"
+                  >{{ item }}</span
+                >
+              </div>
+              <div class="updateTime">
+                <span>{{ mengmaindata.updateTime }}</span>
+              </div>
+            </div>
+            <div class="pic">
+              <div
+                class="cover"
+                :style="
+                  'background-image: url(' + mengmaindata.coverImageUrl + ');'
+                "
+              />
             </div>
           </div>
         </div>
@@ -132,12 +152,13 @@ export default {
       playSource: [],
       sortValue: true,
       sort: [
-        { text: "正序", value: true },
-        { text: "倒序", value: false },
+        { text: "升序", value: true },
+        { text: "降序", value: false },
       ],
       isLoading: false,
       activeNames: "",
       show: false,
+      subtitleArr: [],
       mengmaindata: {
         title: "",
         introduction: "",
@@ -155,16 +176,28 @@ export default {
   },
   methods: {
     async getData() {
+      this.showOverlay = true;
       await axios.get("/mengmian/view/30095").then((res) => {
         console.log(res.headers);
         const $ = cheerio.load(res.data);
         this.mengmaindata.title = $("h1.title").text();
         store.dispatch("bar/setTitle", "小虾 - " + this.mengmaindata.title);
         this.mengmaindata.updateTime = $(".data").eq(3).text();
-        this.mengmaindata.area = $(".data").eq(0).text();
+        // this.mengmaindata.area = $(".data").eq(0).text();
+        let subtitleArr = [];
+        let $list = $(".tag-list a");
+        for (let i = 0; i < $list.length; i++) {
+          subtitleArr.push($list.eq(i).text());
+        }
+        // $list = $(".data").eq(0).find("a");
+        // for (let i = 0; i < $list.length; i++) {
+        //   subtitleArr.push($list.eq(i).text());
+        // }
+        // subtitleArr.push($(".data").eq(3).text());
+        this.subtitleArr = subtitleArr;
         this.mengmaindata.introduction = $(".detail-content").text();
         this.mengmaindata.coverImageUrl = $(".cover-image").attr("src");
-        let $list = $(".nav-tabs li");
+        $list = $(".nav-tabs li");
         let playSource = [];
         for (let i = 0; i < $list.length; i++) {
           playSource.push({
@@ -195,6 +228,7 @@ export default {
         scrollX: true,
         probeType: 3, // listening scroll hook
         click: true,
+        eventPassthrough: "vertical",
       });
     },
     refresh() {
@@ -271,40 +305,75 @@ export default {
   margin: 15px;
   background-color: #ffffff;
   border-radius: 8px;
-  padding: 10px;
+  padding: 0.04rem 0.04rem;
 }
 .details {
+  padding: 0.2rem 0.2rem;
   .setting {
     position: absolute;
     right: 30px;
     cursor: pointer;
   }
   .box {
-    display: table;
-    .van-image {
-      vertical-align: top;
-      width: 8em;
-      margin-right: 10px;
-      border-radius: 8px;
-    }
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
     .detail {
+      .header-title {
+        line-height: 30px;
+        margin-bottom: 10px;
+        .title {
+          font-weight: 700;
+          font-size: 24px;
+          color: rgba(0, 0, 0, 0.86);
+        }
+      }
+      .subtitle-item {
+        position: relative;
+        margin-right: 12px;
+        font-size: 12px;
+        line-height: 16px;
+      }
+      .subtitle-item.dot:before {
+        position: absolute;
+        display: inline-block;
+        content: "";
+        width: 2px;
+        height: 2px;
+        -webkit-border-radius: 2px;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.4);
+        top: 6px;
+        left: -8px;
+      }
+      .updateTime {
+        margin-top: 14px;
+        line-height: 1;
+        font-size: 14px;
+      }
+      flex: 1;
       display: table-cell;
       vertical-align: top;
     }
-  }
-}
-.show {
-  margin: 15px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 10px;
-  .title {
-    margin: 0;
-    padding: 16px;
-    color: @van-doc-text-light-blue;
-    font-weight: normal;
-    font-size: 14px;
-    line-height: 16px;
+    .pic {
+      margin-left: 14px;
+      display: block;
+      width: 1.05rem;
+      height: 1.4rem;
+      -webkit-border-radius: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+      .cover {
+        background-size: cover;
+        background-position: 50% 20%;
+        // vertical-align: top;
+        width: 100%;
+        height: 100%;
+        // margin-right: 10px;
+        // border-radius: 8px;
+      }
+    }
   }
 }
 
@@ -313,7 +382,6 @@ export default {
   .scroll-wrapper {
     position: relative;
     height: 100%;
-    padding: 16px auto;
     border-radius: 5px;
     overflow: hidden;
 
@@ -328,10 +396,6 @@ export default {
           text-align: center;
         }
       }
-    }
-
-    img {
-      height: 100px;
     }
 
     .van-button {
@@ -353,10 +417,12 @@ export default {
 }
 
 .horizontal-container {
+  padding-bottom: 0.16rem;
   .scroll-wrapper {
     position: relative;
     width: 90%;
-    margin: 10px auto;
+    margin-top: 0.1rem;
+    // margin: 10px auto;
     white-space: nowrap;
     border-radius: 5px;
     overflow: hidden;
