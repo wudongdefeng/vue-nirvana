@@ -35,11 +35,11 @@
                   round
                   color="#7232dd"
                   plain
-                  v-for="(episode,index) in limitedEpisodeList"
+                  v-for="(episode, index) in limitedEpisodeList"
                   :key="index"
                   class="scroll-item"
                 >
-                  <span>{{episode.episode}}</span>
+                  <span>{{ episode.episode }}</span>
                 </van-button>
               </div>
             </div>
@@ -51,7 +51,7 @@
             <div class="scroll-wrapper" ref="scroll">
               <div class="scroll-content">
                 <img
-                  v-for="(stills,index) in stillsList"
+                  v-for="(stills, index) in stillsList"
                   :key="index"
                   :src="stills"
                   class="scroll-item"
@@ -63,7 +63,9 @@
           </div>
         </div>
         <van-collapse v-model="activeNames" accordion class="introduction">
-          <van-collapse-item title="简介" name="1">{{ mengmaindata.introduction }}</van-collapse-item>
+          <van-collapse-item title="简介" name="1">{{
+            mengmaindata.introduction
+          }}</van-collapse-item>
         </van-collapse>
       </div>
     </van-pull-refresh>
@@ -84,16 +86,20 @@
         <div class="scroll-wrapper" ref="line2">
           <div class="scroll-content">
             <ul>
-              <li v-for="(episode,index) in episodeList" :key="index">
+              <li v-for="(episode, index) in episodeList" :key="index">
                 <van-button round class="scroll-item">
-                  <span>{{episode.episode}}</span>
+                  <span>{{ episode.episode }}</span>
                 </van-button>
               </li>
             </ul>
           </div>
         </div>
       </div>
-      <van-pagination v-model="currentPage" :total-items="24" :items-per-page="5" />
+      <van-pagination
+        v-model="currentPage"
+        :total-items="24"
+        :items-per-page="5"
+      />
     </van-popup>
   </div>
 </template>
@@ -104,6 +110,7 @@ import { Toast, ImagePreview } from "vant";
 import ScrollBar from "@better-scroll/scroll-bar";
 // import cheerio from "cheerio";
 import axios from "axios";
+import AES from "@/utils/AES.js";
 
 BScroll.use(ScrollBar);
 
@@ -148,63 +155,92 @@ export default {
   },
   methods: {
     getData() {
-      if (window.requestAsync)
-        window.requestAsync(
-          "https://api.simpleplay.cn/api/programmes/5f58b6ffe76fe4003ad929b0?origin=home",
-          {
-            headers: {
-              "content-type": "application/x-www-form-urlencoded",
-              "Client-Type": "app",
-              "Device-ID": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
-              "User-Agent": "Viewer/2.1.2 Android/5.1.1 Pad/OnePlus-HD1910",
-              "serial-number": "ff859e60f71960e31c338386c8560e4a",
-              timestamp: "1599744152827",
-            },
-            method: "GET",
-          },
-          (key, result) => {
-            console.log(Date.now())
-            console.log(result);
-          }
-        );
+      //   if (window.requestAsync)
+      //     window.requestAsync(
+      //       "https://api.simpleplay.cn/api/programmes/5f58b6ffe76fe4003ad929b0?origin=home",
+      //       {
+      //         headers: {
+      //           "content-type": "application/x-www-form-urlencoded",
+      //           "Client-Type": "app",
+      //           "Device-ID": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
+      //           "User-Agent": "Viewer/2.1.2 Android/5.1.1 Pad/OnePlus-HD1910",
+      //           "serial-number": "ff859e60f71960e31c338386c8560e4a",
+      //           timestamp: "1599744152827",
+      //         },
+      //         method: "GET",
+      //       },
+      //       (key, result) => {
+      //         console.log(Date.now());
+      //         console.log(result);
+      //       }
+      //     );
+
+      var encrypts = AES.encrypt(
+        JSON.stringify({ keywords: "花木兰", order_val: 1 })
+      );
+      console.log("getData -> encrypts", encrypts);
+      var dess = AES.decrypt(
+        "C94E36E1C184441968FFA4A1DAC51B5E1E907FDCC363E5B408600F99DC609C4AFC1CE1BD7A57B84BD940C00EA11FF30E011A108E24C29FFB65B7300CD7F5A09C9A8D97B20DE6840FCF037DF45C487717F349CA77B94717BD678BACC81F786F8F39ED00146383A550C6C5AF3094F1294727FE4102F8FF6A2E5875A6612FB16BF1B75B131CB07ADFC35342887FDD607532B104DEE9A7F9BA3DFEDEC52E4416B47C"
+      );
+      console.log("getData -> dess", dess);
       axios({
-        url: "/juhui/api/programmes/5ed756c0d363dc00350f6815",
-        method: "get",
+        url: "/nangua/App/UserInfo/indexPlay",
+        method: "post",
+        // data: {
+        //   token: "64504f9cd1bcc3f8548c91aa7f035670",
+        //   token_id: "38358672",
+        //   phone_type: 1,
+        //   versions_code: 1381,
+        //   request_key:
+        //     "9394019C2651FCCD9D2C97D903E34207207E963FFEFB4C5B4A76D773540B48098EBE2C46F7A720D6E9301B104604C48B",
+        //   app_id: 1,
+        //   ad_version: 1,
+        // },
+        data: `token=5b9ea09ec33f3dfa195c3671dd039854&token_id=10412632&phone_type=1&versions_code=1231&request_key=${AES.encrypt(
+          JSON.stringify({
+            token_id: "38358672",
+            mobile_key: "b8d6cd3de363c0595322bec64e157d7d",
+            vod_id: "149681",
+            mobile_time: "1600953373",
+            token: "64504f9cd1bcc3f8548c91aa7f035670",
+          })
+        )}&app_id=2&ad_version=1`,
         headers: {
-          "device-id": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
           "Content-Type": "application/x-www-form-urlencoded",
         },
       }).then((res) => {
-        // console.log(res);
-        let data = res.data.data.programme;
-        let classifications = [...data.classifications];
-        let tag = "";
-        classifications.forEach((element, index) => {
-          tag += element;
-          if (index + 1 != classifications.length) tag += " / ";
-        });
-        tag +=
-          " / " +
-          data.releaseYear +
-          "(" +
-          data.location +
-          ") / " +
-          data.category.name;
-        this.mengmaindata.tag = tag;
-        this.mengmaindata.title = data.title;
-        this.mengmaindata.introduction = data.summary;
-        this.mengmaindata.coverImageUrl = data.verticalCover;
-        this.stillsList = data.programmeImages;
-        this.episodeList = data.resources;
-        [...this.episodeList].forEach((element, index) => {
-          if (index < 10) {
-            this.limitedEpisodeList.push(element);
-          }
-        });
-        this.$nextTick(() => {
-          this.bs2.refresh();
-          this.showOverlay = false;
-        });
+        console.log(res);
+        let data = JSON.parse(AES.decrypt(res.data.data.response_key));
+        console.log("getData -> data", data);
+        // let data = res.data.data.programme;
+        // let classifications = [...data.classifications];
+        // let tag = "";
+        // classifications.forEach((element, index) => {
+        //   tag += element;
+        //   if (index + 1 != classifications.length) tag += " / ";
+        // });
+        // tag +=
+        //   " / " +
+        //   data.releaseYear +
+        //   "(" +
+        //   data.location +
+        //   ") / " +
+        //   data.category.name;
+        // this.mengmaindata.tag = tag;
+        // this.mengmaindata.title = data.title;
+        // this.mengmaindata.introduction = data.summary;
+        // this.mengmaindata.coverImageUrl = data.verticalCover;
+        // this.stillsList = data.programmeImages;
+        // this.episodeList = data.resources;
+        // [...this.episodeList].forEach((element, index) => {
+        //   if (index < 10) {
+        //     this.limitedEpisodeList.push(element);
+        //   }
+        // });
+        // this.$nextTick(() => {
+        //   this.bs2.refresh();
+        //   this.showOverlay = false;
+        // });
       });
     },
     init() {

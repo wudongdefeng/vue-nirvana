@@ -57,6 +57,13 @@ module.exports = {
                 pathRewrite: {
                     '^/juhui': '/'
                 }
+            },
+            '/nangua': {
+                target: "http://api.rbqfccf.com",
+                changOrigin: true,
+                pathRewrite: {
+                    '^/nangua': '/'
+                }
             }
         }
     }

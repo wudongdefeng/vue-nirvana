@@ -24,6 +24,10 @@ const routes = [{
   path: '/juhui',
   name: 'Juhui',
   component: () => import('@/views/juhui')
+}, {
+  path: '/nangua',
+  name: 'Nangua',
+  component: () => import('@/views/nangua')
 },
 {
   path: '/hh/:id',
