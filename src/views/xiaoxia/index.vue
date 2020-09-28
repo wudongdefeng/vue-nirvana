@@ -1,164 +1,166 @@
 <template>
   <div>
-    <van-overlay class="loadingBox" :show="showOverlay">
+    <van-overlay class="loadingBox" :show="showOverlay" :z-index="2003">
       <van-loading size="24px">加载中...</van-loading>
     </van-overlay>
-    <van-pull-refresh
-      v-model="isLoading"
-      @refresh="onRefresh"
-      style="min-height: calc(100vh - 46px)"
-    >
-      <div>
-        <div class="details">
-          <!-- <span class="setting">
+    <div>
+      <van-pull-refresh
+        v-model="isLoading"
+        @refresh="onRefresh"
+        style="min-height: calc(100vh - 46px)"
+      >
+        <div>
+          <div class="details">
+            <!-- <span class="setting">
             <van-icon name="setting-o" size="20" />
           </span> -->
-          <div class="box">
-            <div class="detail">
-              <div class="header-title">
-                <span class="title">{{ mengmaindata.title }}</span>
-              </div>
-              <div>
-                <!-- <span class="subtitle-item">{{ mengmaindata.area }}</span>
+            <div class="box">
+              <div class="detail">
+                <div class="header-title">
+                  <span class="title">{{ mengmaindata.title }}</span>
+                </div>
+                <div>
+                  <!-- <span class="subtitle-item">{{ mengmaindata.area }}</span>
                 <span class="subtitle-item dot">{{
                   mengmaindata.updateTime
                 }}</span> -->
-                <span
-                  :class="index == 0 ? 'subtitle-item' : 'subtitle-item dot'"
-                  v-for="(item, index) in subtitleArr"
-                  :key="index"
-                  >{{ item }}</span
-                >
+                  <span
+                    :class="index == 0 ? 'subtitle-item' : 'subtitle-item dot'"
+                    v-for="(item, index) in subtitleArr"
+                    :key="index"
+                    >{{ item }}</span
+                  >
+                </div>
+                <div class="updateTime">
+                  <span>{{ mengmaindata.updateTime }}</span>
+                </div>
               </div>
-              <div class="updateTime">
-                <span>{{ mengmaindata.updateTime }}</span>
-              </div>
-            </div>
-            <div class="pic">
-              <div
-                class="cover"
-                :style="
-                  'background-image: url(' + mengmaindata.coverImageUrl + ');'
-                "
-              />
-            </div>
-          </div>
-        </div>
-        <div class="selections" v-if="playShow">
-          <van-cell title="选集" is-link @click="showPopup" />
-          <div class="horizontal-container">
-            <div class="scroll-wrapper" ref="episodesOuter">
-              <div class="scroll-content">
-                <van-button
-                  round
-                  v-for="(item, index) in [...episodes].splice(0, 10)"
-                  :key="index"
-                  class="scroll-item selectionButton"
-                  @click="
-                    showOverlay = true;
-                    $nextTick(() => {
-                      playVideo(item.url);
-                    });
+              <div class="pic">
+                <div
+                  class="cover"
+                  :style="
+                    'background-image: url(' + mengmaindata.coverImageUrl + ');'
                   "
-                  >{{ item.text }}</van-button
-                >
-                <van-button
-                  v-if="episodes.length > 10"
-                  round
-                  class="seeMore"
-                  @click="showPopup"
-                  >查看更多</van-button
-                >
+                />
               </div>
             </div>
           </div>
+          <div class="selections" v-if="playShow">
+            <van-cell title="选集" is-link @click="showPopup" />
+            <div class="horizontal-container">
+              <div class="scroll-wrapper" ref="episodesOuter">
+                <div class="scroll-content">
+                  <van-button
+                    round
+                    v-for="(item, index) in [...episodes].splice(0, 10)"
+                    :key="index"
+                    class="scroll-item selectionButton"
+                    @click="
+                      showOverlay = true;
+                      $nextTick(() => {
+                        playVideo(item.url);
+                      });
+                    "
+                    >{{ item.text }}</van-button
+                  >
+                  <van-button
+                    v-if="episodes.length > 10"
+                    round
+                    class="seeMore"
+                    @click="showPopup"
+                    >查看更多</van-button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+          <van-collapse v-model="activeNames" accordion class="introduction">
+            <van-collapse-item title="简介" name="1">{{
+              mengmaindata.introduction
+            }}</van-collapse-item>
+          </van-collapse>
         </div>
-        <van-collapse v-model="activeNames" accordion class="introduction">
-          <van-collapse-item title="简介" name="1">{{
-            mengmaindata.introduction
-          }}</van-collapse-item>
-        </van-collapse>
-      </div>
-    </van-pull-refresh>
-    <van-popup
-      v-model="show"
-      round
-      position="bottom"
-      :style="{ height: '80vh' }"
-      @close="closePop"
-      @opened="openPop"
-      :lock-scroll="false"
-    >
-      <van-dropdown-menu active-color="rgba(32, 18, 217, 255)">
-        <van-dropdown-item
-          @change="
-            (value) => {
-              currentPage = 1;
-              episodes = allEpisodes[value];
-              $nextTick(() => {
-                episodesBs.refresh();
-              });
-            }
-          "
-          v-model="playSourceValue"
-          :options="playSource"
-        />
-        <van-dropdown-item
-          @change="
-            (value) => {
-              currentPage = 1;
-              $nextTick(() => {
-                episodesBs.refresh();
-              });
-            }
-          "
-          v-model="sortValue"
-          :options="sort"
-        />
-      </van-dropdown-menu>
-      <div class="core-container">
-        <div class="scroll-wrapper" ref="episodes">
-          <div class="scroll-content">
-            <ul>
-              <li
-                v-for="(item, index) in sortValue
-                  ? [...episodes].splice(
-                      (currentPage - 1) * 50,
-                      currentPage * 50
-                    )
-                  : [...episodes]
-                      .reverse()
-                      .splice((currentPage - 1) * 50, currentPage * 50)"
-                :key="index"
-              >
-                <van-button
-                  @click="
-                    showOverlay = true;
-                    $nextTick(() => {
-                      playVideo(item.url);
-                    });
-                  "
-                  round
-                  class="scroll-item selectionButton"
-                  >{{ item.text }}</van-button
+      </van-pull-refresh>
+      <van-popup
+        v-model="show"
+        round
+        position="bottom"
+        :style="{ height: '80vh' }"
+        @close="closePop"
+        @opened="openPop"
+        :lock-scroll="false"
+      >
+        <van-dropdown-menu active-color="rgba(32, 18, 217, 255)">
+          <van-dropdown-item
+            @change="
+              (value) => {
+                currentPage = 1;
+                episodes = allEpisodes[value];
+                $nextTick(() => {
+                  episodesBs.refresh();
+                });
+              }
+            "
+            v-model="playSourceValue"
+            :options="playSource"
+          />
+          <van-dropdown-item
+            @change="
+              (value) => {
+                currentPage = 1;
+                $nextTick(() => {
+                  episodesBs.refresh();
+                });
+              }
+            "
+            v-model="sortValue"
+            :options="sort"
+          />
+        </van-dropdown-menu>
+        <div class="core-container">
+          <div class="scroll-wrapper" ref="episodes">
+            <div class="scroll-content">
+              <ul>
+                <li
+                  v-for="(item, index) in sortValue
+                    ? [...episodes].splice(
+                        (currentPage - 1) * 50,
+                        currentPage * 50
+                      )
+                    : [...episodes]
+                        .reverse()
+                        .splice((currentPage - 1) * 50, currentPage * 50)"
+                  :key="index"
                 >
-              </li>
-            </ul>
+                  <van-button
+                    @click="
+                      showOverlay = true;
+                      $nextTick(() => {
+                        playVideo(item.url);
+                      });
+                    "
+                    round
+                    class="scroll-item selectionButton"
+                    >{{ item.text }}</van-button
+                  >
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-      <van-pagination
-        v-model="currentPage"
-        :total-items="24"
-        :page-count="Math.ceil(episodes.length / 50)"
-        :items-per-page="50"
-        @change="
-          $nextTick(() => {
-            episodesBs.refresh();
-          })
-        "
-      />
-    </van-popup>
+        <van-pagination
+          v-model="currentPage"
+          :total-items="24"
+          :page-count="Math.ceil(episodes.length / 50)"
+          :items-per-page="50"
+          @change="
+            $nextTick(() => {
+              episodesBs.refresh();
+            })
+          "
+        />
+      </van-popup>
+    </div>
   </div>
 </template>
 
@@ -209,7 +211,14 @@ export default {
     [ImagePreview.Component.name]: ImagePreview.Component,
   },
   mounted() {
-    this.getData();
+    this.$nextTick(() => {
+      this.getData();
+    });
+  },
+  activated() {
+    this.$nextTick(() => {
+      this.getData();
+    });
   },
   methods: {
     async getData() {
