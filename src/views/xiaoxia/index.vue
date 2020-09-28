@@ -212,12 +212,9 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
-      this.getData();
-    });
-  },
-  activated() {
-    this.$nextTick(() => {
-      this.getData();
+      window.setTimeout(async () => {
+        await this.getData();
+      }, 1500);
     });
   },
   methods: {
