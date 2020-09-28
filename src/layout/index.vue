@@ -33,7 +33,7 @@
 
 <script>
 import { mapGetters } from "vuex";
-import AppMain from "./components/AppMain.vue";
+import AppMain from "./components/AppMain";
 export default {
   computed: {
     ...mapGetters(["title"]),

@@ -44,7 +44,7 @@
             </div>
           </div>
         </div>
-        <div class="selections">
+        <div class="selections" v-if="playShow">
           <van-cell title="选集" is-link @click="showPopup" />
           <div class="horizontal-container">
             <div class="scroll-wrapper" ref="episodesOuter">
@@ -53,8 +53,21 @@
                   round
                   v-for="(item, index) in [...episodes].splice(0, 10)"
                   :key="index"
-                  class="scroll-item"
+                  class="scroll-item selectionButton"
+                  @click="
+                    showOverlay = true;
+                    $nextTick(() => {
+                      playVideo(item.url);
+                    });
+                  "
                   >{{ item.text }}</van-button
+                >
+                <van-button
+                  v-if="episodes.length > 10"
+                  round
+                  class="seeMore"
+                  @click="showPopup"
+                  >查看更多</van-button
                 >
               </div>
             </div>
@@ -82,6 +95,9 @@
             (value) => {
               currentPage = 1;
               episodes = allEpisodes[value];
+              $nextTick(() => {
+                episodesBs.refresh();
+              });
             }
           "
           v-model="playSourceValue"
@@ -91,6 +107,9 @@
           @change="
             (value) => {
               currentPage = 1;
+              $nextTick(() => {
+                episodesBs.refresh();
+              });
             }
           "
           v-model="sortValue"
@@ -112,7 +131,7 @@
                       .splice((currentPage - 1) * 50, currentPage * 50)"
                 :key="index"
               >
-                <van-button round class="scroll-item">{{
+                <van-button round class="scroll-item selectionButton">{{
                   item.text
                 }}</van-button>
               </li>
@@ -125,6 +144,11 @@
         :total-items="24"
         :page-count="Math.ceil(episodes.length / 50)"
         :items-per-page="50"
+        @change="
+          $nextTick(() => {
+            episodesBs.refresh();
+          })
+        "
       />
     </van-popup>
   </div>
@@ -137,12 +161,17 @@ import ScrollBar from "@better-scroll/scroll-bar";
 import cheerio from "cheerio";
 import axios from "axios";
 import store from "@/store";
+import CryptoJS from "crypto-js";
+import pako from "pako";
 
 BScroll.use(ScrollBar);
 
 export default {
+  name: "xiaoxia",
   data() {
     return {
+      playShow: true,
+      detailsId: this.$route.params.id,
       allEpisodes: [],
       episodes: [],
       showOverlay: true,
@@ -176,27 +205,48 @@ export default {
   },
   methods: {
     async getData() {
+      let res = {};
       this.showOverlay = true;
-      await axios.get("/mengmian/view/30095").then((res) => {
-        console.log(res.headers);
-        const $ = cheerio.load(res.data);
-        this.mengmaindata.title = $("h1.title").text();
-        store.dispatch("bar/setTitle", "小虾 - " + this.mengmaindata.title);
-        this.mengmaindata.updateTime = $(".data").eq(3).text();
-        // this.mengmaindata.area = $(".data").eq(0).text();
-        let subtitleArr = [];
-        let $list = $(".tag-list a");
-        for (let i = 0; i < $list.length; i++) {
-          subtitleArr.push($list.eq(i).text());
-        }
-        // $list = $(".data").eq(0).find("a");
-        // for (let i = 0; i < $list.length; i++) {
-        //   subtitleArr.push($list.eq(i).text());
-        // }
-        // subtitleArr.push($(".data").eq(3).text());
-        this.subtitleArr = subtitleArr;
-        this.mengmaindata.introduction = $(".detail-content").text();
-        this.mengmaindata.coverImageUrl = $(".cover-image").attr("src");
+      let $ = "";
+      if (window.requestAsync) {
+        // let xxObj = JSON.parse(window.request("hiker://files/xxFile", {}));
+        // let cookieArr = xxObj.cookie;
+        // cookieArr = JSON.parse(cookieArr);
+        // let cookie = "";
+        // cookieArr.forEach((c) => {
+        //   cookie += c + ";";
+        // });
+        res = await window.request(
+          `https://mengmiandaxia.com/view/${this.detailsId}`
+        );
+        $ = cheerio.load(res);
+      } else {
+        res = await axios.get(`/mengmian/view/${this.detailsId}`);
+        $ = cheerio.load(res.data);
+      }
+      this.mengmaindata.title = $("h1.title")
+        .clone() //复制元素
+        .children() //获取所有子元素
+        .remove() //删除所有子元素
+        .end() //回到选择的元素
+        .text();
+      store.dispatch("bar/setTitle", this.mengmaindata.title + " - 小虾");
+      this.mengmaindata.updateTime = $(".data").eq(3).text();
+      // this.mengmaindata.area = $(".data").eq(0).text();
+      let subtitleArr = [];
+      let $list = $(".tag-list a");
+      for (let i = 0; i < $list.length; i++) {
+        subtitleArr.push($list.eq(i).text());
+      }
+      // $list = $(".data").eq(0).find("a");
+      // for (let i = 0; i < $list.length; i++) {
+      //   subtitleArr.push($list.eq(i).text());
+      // }
+      // subtitleArr.push($(".data").eq(3).text());
+      this.subtitleArr = subtitleArr;
+      this.mengmaindata.introduction = $(".detail-content").text();
+      this.mengmaindata.coverImageUrl = $(".cover-image").attr("src");
+      if ($(".nav-tabs li").length > 0) {
         $list = $(".nav-tabs li");
         let playSource = [];
         for (let i = 0; i < $list.length; i++) {
@@ -214,13 +264,17 @@ export default {
           for (let j = 0; j < $list2.length; j++) {
             allEpisodes[i].push({
               text: $list2.eq(j).text(),
+              url: $list2.eq(j).find("a").attr("href"),
             });
           }
         }
+        this.playShow = true;
         this.allEpisodes = allEpisodes;
         this.episodes = this.allEpisodes[this.playSourceValue];
-        this.showOverlay = false;
-      });
+      } else {
+        this.playShow = false;
+      }
+      this.showOverlay = false;
       this.init();
     },
     init() {
@@ -252,11 +306,11 @@ export default {
     },
     closePop() {
       this.handleHambergerClick();
-      this.init();
+      // this.init();
     },
     openPop() {
       this.handleHambergerClick();
-      this.episodesOuterBs.destroy();
+      // this.episodesOuterBs.destroy();
       if (!this.episodesBs)
         this.episodesBs = new BScroll(this.$refs.episodes, {
           scrollY: true,
@@ -291,6 +345,40 @@ export default {
       body.style.top = "";
       document.body.scrollTop = -parseInt(top, 10);
       document.documentElement.scrollTop = -parseInt(top, 10);
+    },
+    async playVideo(url) {
+      window.setTimeout(async () => {
+        if (window.request) {
+          let xxObj = JSON.parse(window.request("hiker://files/xxFile", {}));
+          let token = xxObj.token;
+          let cookieArr = xxObj.cookie;
+          cookieArr = JSON.parse(cookieArr);
+          let cookie = "";
+          cookieArr.forEach((c) => {
+            cookie += c + ";";
+          });
+          let res = await window.request(url);
+          const $ = cheerio.load(res);
+          let hash = CryptoJS.MD5(
+            $("#show").attr("data-cv") + "|mengmiandaxia"
+          );
+          let id = $("#show").attr("data-ck");
+          let data = await window.request(
+            "https://mengmiandaxia.com/cloud.html",
+            {
+              headers: {
+                cookie: cookie,
+              },
+              method: "POST",
+              body: `_hash=${hash}&id=${id}&_token=${token}`,
+            }
+          );
+          data = JSON.parse(data);
+          let playUrl = pako.inflate(atob(data.url), { to: "string" });
+          window.fy_bridge_app.playVideo(playUrl);
+          this.showOverlay = false;
+        } else window.location.href = url;
+      }, 300);
     },
   },
 };
@@ -398,7 +486,7 @@ export default {
       }
     }
 
-    .van-button {
+    .scroll-item.van-button {
       width: 4.3em;
       height: 2.1em;
       &__text {
@@ -418,6 +506,7 @@ export default {
 
 .horizontal-container {
   padding-bottom: 0.16rem;
+  touch-action: none;
   .scroll-wrapper {
     position: relative;
     width: 90%;
@@ -435,7 +524,7 @@ export default {
       height: 100px;
     }
 
-    .van-button {
+    .scroll-item.van-button {
       width: 4.3em;
       height: 2.1em;
       &__text {
@@ -448,6 +537,20 @@ export default {
       display: inline-block;
       text-align: center;
       margin: 0 10px;
+      border-radius: 8px;
+    }
+    .seeMore.van-button {
+      width: 5.3em;
+      height: 2.1em;
+      &__text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    .seeMore {
+      display: inline-block;
+      text-align: center;
+      margin: 10px;
       border-radius: 8px;
     }
   }
@@ -475,12 +578,21 @@ export default {
   color: #fff;
   background-color: rgba(32, 18, 217, 255);
 }
-.van-button--default {
+.selectionButton.van-button--default {
   /* color: rgba(34, 34, 34, 255);
   background-color: #fff;
   border: 2px solid rgba(34, 34, 34, 255); */
   color: rgba(0, 0, 0, 0.86);
   background-color: #f4f4f4;
+  font-size: 14px;
+  font-weight: 700;
+}
+.seeMore.van-button--default {
+  /* color: rgba(34, 34, 34, 255);
+  background-color: #fff;
+  border: 2px solid rgba(34, 34, 34, 255); */
+  color: #fff;
+  background-color: rgba(32, 18, 217, 255);
   font-size: 14px;
   font-weight: 700;
 }

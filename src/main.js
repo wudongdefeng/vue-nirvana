@@ -6,6 +6,7 @@ import Vant from 'vant';
 import 'vant/lib/index.css';
 import '@vant/touch-emulator';
 import '@/styles/index.less' // global css
+import './permission' // permission control
 
 Vue.use(Vant);
 
