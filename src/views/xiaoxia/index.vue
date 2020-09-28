@@ -289,7 +289,9 @@ export default {
         this.playShow = false;
       }
       this.showOverlay = false;
-      this.init();
+      this.$nextTick(() => {
+        this.init();
+      });
     },
     init() {
       this.episodesOuterBs = new BScroll(this.$refs.episodesOuter, {
