@@ -156,7 +156,7 @@ export default {
               "content-type": "application/x-www-form-urlencoded",
               "Client-Type": "app",
               "Device-ID": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
-              "User-Agent": "Viewer/2.1.2 Android/5.1.1 Pad/OnePlus-HD1910",
+              "User-Agent": "Viewer/2.1.2",
               "serial-number": "ff859e60f71960e31c338386c8560e4a",
               timestamp: "1599744152827",
             },
