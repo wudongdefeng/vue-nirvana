@@ -131,9 +131,17 @@
                       .splice((currentPage - 1) * 50, currentPage * 50)"
                 :key="index"
               >
-                <van-button round class="scroll-item selectionButton">{{
-                  item.text
-                }}</van-button>
+                <van-button
+                  @click="
+                    showOverlay = true;
+                    $nextTick(() => {
+                      playVideo(item.url);
+                    });
+                  "
+                  round
+                  class="scroll-item selectionButton"
+                  >{{ item.text }}</van-button
+                >
               </li>
             </ul>
           </div>
