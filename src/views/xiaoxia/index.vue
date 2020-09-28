@@ -1,6 +1,6 @@
 <template>
   <div>
-    <van-overlay class="loadingBox" :show="showOverlay" :z-index="2003">
+    <van-overlay class="loadingBox" :show="showOverlay" :z-index="3001">
       <van-loading size="24px">加载中...</van-loading>
     </van-overlay>
     <div>
@@ -389,7 +389,10 @@ export default {
           );
           data = JSON.parse(data);
           let playUrl = pako.inflate(atob(data.url), { to: "string" });
-          window.fy_bridge_app.playVideo(playUrl + ";{User-Agent@Mozilla/5.0 (Linux；； Android 10；； M2006J10C Build/QP1A.190711.020；； wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/85.0.4183.120 Mobile Safari/537.36}");
+          window.fy_bridge_app.playVideo(
+            playUrl +
+              ";{User-Agent@Mozilla/5.0 (Linux；； Android 10；； M2006J10C Build/QP1A.190711.020；； wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/85.0.4183.120 Mobile Safari/537.36}"
+          );
           this.showOverlay = false;
         } else window.location.href = url;
       }, 300);
