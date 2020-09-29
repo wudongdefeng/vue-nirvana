@@ -17,7 +17,16 @@ const routes = [
       meta: {
         title: "小虾"
       }
-    }]
+    },
+    {
+      path: 'xiaoju/:id',
+      component: () => import('@/views/xiaoju/index.vue'),
+      name: 'xiaoju',
+      meta: {
+        title: "小橘"
+      }
+    }
+    ]
   },
   // {
   //   path: '/about',
@@ -28,9 +37,18 @@ const routes = [
   //   component: () => import( /* webpackChunkName: "about" */ '../views/About.vue')
   // },
   // {
-  //   path: '/juhui',
-  //   name: 'Juhui',
-  //   component: () => import('@/views/juhui')
+  //   path: '/xiaoju',
+  //   component: Layout,
+  //   redirect: '/xiaoju',
+  //   hidden: true,
+  //   children: [{
+  //     path: '/:id',
+  //     component: () => import('@/views/xiaoju/index.vue'),
+  //     name: 'xiaoju',
+  //     meta: {
+  //       title: "小橘"
+  //     }
+  //   }]
   // },
   // {
   //   path: '/hh/:id',

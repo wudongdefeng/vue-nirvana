@@ -37,13 +37,25 @@
           <div class="box">
             <div class="detail">
               <div class="header-title">
-                <span class="title">{{ mengmaindata.title }}</span>
+                <span class="title">{{ xiaojudata.title }}</span>
               </div>
               <div>
                 <!-- <span class="subtitle-item">{{ mengmaindata.area }}</span>
                 <span class="subtitle-item dot">{{
                   mengmaindata.updateTime
                 }}</span> -->
+                <van-tag
+                  v-if="xiaojudata.tag"
+                  color="rgba(153,153,153,.1)"
+                  text-color="#999"
+                  style="
+                    vertical-align: middle;
+                    margin-right: 6px;
+                    margin-top: -2px;
+                    font-weight: 700;
+                  "
+                  >{{ xiaojudata.tag }}</van-tag
+                >
                 <span
                   :class="index == 0 ? 'subtitle-item' : 'subtitle-item dot'"
                   v-for="(item, index) in subtitleArr"
@@ -52,14 +64,14 @@
                 >
               </div>
               <div class="updateTime">
-                <span>{{ mengmaindata.updateTime }}</span>
+                <span>{{ xiaojudata.updateTime }}</span>
               </div>
             </div>
             <div class="pic">
               <div
                 class="cover"
                 :style="
-                  'background-image: url(' + mengmaindata.coverImageUrl + ');'
+                  'background-image: url(' + xiaojudata.coverImageUrl + ');'
                 "
               />
             </div>
@@ -76,12 +88,14 @@
                   :key="index"
                   class="scroll-item selectionButton"
                   @click="
-                    showOverlay = true;
-                    $nextTick(() => {
-                      playVideo(item.url, item.text);
+                    clarity.actions = item.data.map((e) => {
+                      e.name = e.displayName;
+                      e.text = item.episode;
+                      return e;
                     });
+                    clarity.show = true;
                   "
-                  >{{ item.text }}</van-button
+                  >{{ item.episode }}</van-button
                 >
                 <van-button
                   v-if="episodes.length > 10"
@@ -94,9 +108,26 @@
             </div>
           </div>
         </div>
+        <div class="show">
+          <h2 class="title">预告片 / 剧照</h2>
+          <div class="horizontal-container">
+            <div class="scroll-wrapper" ref="stills">
+              <div class="scroll-content">
+                <img
+                  v-for="(stills, index) in stillsList"
+                  :key="index"
+                  :src="stills"
+                  class="scroll-item"
+                  @load="refresh"
+                  @click="showImg(index)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         <van-collapse v-model="activeNames" accordion class="introduction">
           <van-collapse-item title="简介" name="1">{{
-            mengmaindata.introduction
+            xiaojudata.introduction
           }}</van-collapse-item>
         </van-collapse>
       </van-pull-refresh>
@@ -153,14 +184,16 @@
                 >
                   <van-button
                     @click="
-                      showOverlay = true;
-                      $nextTick(() => {
-                        playVideo(item.url, item.text);
+                      clarity.actions = item.data.map((e) => {
+                        e.name = e.displayName;
+                        e.text = item.episode;
+                        return e;
                       });
+                      clarity.show = true;
                     "
                     round
                     class="scroll-item selectionButton"
-                    >{{ item.text }}</van-button
+                    >{{ item.episode }}</van-button
                   >
                 </li>
               </ul>
@@ -179,6 +212,16 @@
           "
         />
       </van-popup>
+      <van-action-sheet
+        v-model="clarity.show"
+        :actions="clarity.actions"
+        @select="clarityOnSelect"
+      />
+      <van-action-sheet
+        v-model="playInterface.show"
+        :actions="playInterface.actions"
+        @select="playInterfaceOnSelect"
+      />
     </div>
   </div>
 </template>
@@ -187,24 +230,30 @@
 import BScroll from "@better-scroll/core";
 import { Toast, ImagePreview } from "vant";
 import ScrollBar from "@better-scroll/scroll-bar";
-import cheerio from "cheerio";
 import axios from "axios";
 import store from "@/store";
-import CryptoJS from "crypto-js";
-import pako from "pako";
 import { validatenull } from "@/utils/validate";
 
 BScroll.use(ScrollBar);
 
 export default {
-  name: "xiaoxia",
+  name: "xiaoju",
   data() {
     return {
+      clarity: {
+        show: false,
+        actions: [],
+      },
+      playInterface: {
+        show: false,
+        actions: [],
+      },
       sequelTips: {
         show: false,
         text: "",
         url: "",
       },
+      stillsList: [],
       playShow: true,
       detailsId: this.$route.params.id,
       allEpisodes: [],
@@ -213,7 +262,12 @@ export default {
       currentPage: 1,
       isHeaderVisible: false,
       playSourceValue: 0,
-      playSource: [],
+      playSource: [
+        {
+          text: "默认源",
+          value: 0,
+        },
+      ],
       sortValue: true,
       sort: [
         { text: "升序", value: true },
@@ -223,7 +277,7 @@ export default {
       activeNames: "",
       show: false,
       subtitleArr: [],
-      mengmaindata: {
+      xiaojudata: {
         title: "",
         introduction: "",
         coverImageUrl: "",
@@ -243,10 +297,51 @@ export default {
     });
   },
   methods: {
+    async playInterfaceOnSelect(item) {
+      if (!item.title) this.playVideo(item.name, item.text);
+    },
+    async clarityOnSelect(item) {
+      this.showOverlay = true;
+      let xiaojuAxios = axios.create({
+        timeout: 1500,
+      });
+      let number = 0;
+      let playInterface = [];
+      for (let i = 0; i < 30; i++) {
+        xiaojuAxios
+          .get(`https://ipfs${i}.365kqzs.cn:9081/ipfs/${item.hash}`)
+          .then(() => {
+            // number += 1;
+            // playInterface.push({
+            //   name: `https://ipfs${i}.365kqzs.cn:9081/ipfs/${item.hash}`,
+            //   text: `${item.text} - ${item.name}`,
+            // });
+          })
+          .catch((e) => {
+            if (e.message == "timeout of 1500ms exceeded") {
+              playInterface.push({
+                name: `https://ipfs${i}.365kqzs.cn:9081/ipfs/${item.hash}`,
+                text: `${item.text} - ${item.name}`,
+              });
+              number += 1;
+            }
+          });
+      }
+      window.setTimeout(() => {
+        playInterface = [
+          { name: `共${number}条可用播放链接`, color: "#ee0a24", title: true },
+          ...playInterface,
+        ];
+        this.playInterface.actions = playInterface;
+        this.clarity.show = false;
+        this.playInterface.show = true;
+        this.showOverlay = false;
+      }, 3100);
+    },
     async getData() {
       let res = {};
       this.showOverlay = true;
-      let $ = "";
+      let data = {};
       if (window.fy_bridge_app) {
         // let xxObj = JSON.parse(window.request("hiker://files/xxFile", {}));
         // let cookieArr = xxObj.cookie;
@@ -256,63 +351,36 @@ export default {
         //   cookie += c + ";";
         // });
         res = await window.request(
-          `https://mengmiandaxia.com/view/${this.detailsId}`
-        );
-        $ = cheerio.load(res);
-      } else {
-        res = await axios.get(`/mengmian/view/${this.detailsId}`);
-        $ = cheerio.load(res.data);
-      }
-      this.mengmaindata.title = $("h1.title")
-        .clone() //复制元素
-        .children() //获取所有子元素
-        .remove() //删除所有子元素
-        .end() //回到选择的元素
-        .text();
-      store.dispatch("bar/setTitle", this.mengmaindata.title + " - 小虾");
-      this.mengmaindata.updateTime = $(".data").eq(3).text();
-      // this.mengmaindata.area = $(".data").eq(0).text();
-      let subtitleArr = [];
-      let $list = $(".tag-list a");
-      for (let i = 0; i < $list.length; i++) {
-        subtitleArr.push($list.eq(i).text());
-      }
-      // $list = $(".data").eq(0).find("a");
-      // for (let i = 0; i < $list.length; i++) {
-      //   subtitleArr.push($list.eq(i).text());
-      // }
-      // subtitleArr.push($(".data").eq(3).text());
-      this.subtitleArr = subtitleArr;
-      this.mengmaindata.introduction = $(".detail-content").text();
-      this.mengmaindata.coverImageUrl = $(".cover-image").attr("src");
-      if ($(".nav-tabs li").length > 0) {
-        $list = $(".nav-tabs li");
-        let playSource = [];
-        for (let i = 0; i < $list.length; i++) {
-          playSource.push({
-            text: $list.eq(i).text(),
-            value: i,
-          });
-        }
-        this.playSource = playSource;
-        $list = $(".stui-content__playlist");
-        let allEpisodes = [];
-        for (let i = 0; i < $list.length; i++) {
-          let $list2 = $list.eq(i).find("li");
-          allEpisodes[i] = [];
-          for (let j = 0; j < $list2.length; j++) {
-            allEpisodes[i].push({
-              text: $list2.eq(j).text(),
-              url: $list2.eq(j).find("a").attr("href"),
-            });
+          `https://api.simpleplay.cn/api/programmes/${this.detailsId}`,
+          {
+            headers: {
+              "Device-ID": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
+              "User-Agent": "Viewer/2.1.2",
+            },
+            method: "GET",
           }
-        }
-        this.playShow = true;
-        this.allEpisodes = allEpisodes;
-        this.episodes = this.allEpisodes[this.playSourceValue];
+        );
+        data = JSON.parse(res).data.programme;
       } else {
-        this.playShow = false;
+        res = await axios({
+          url: `/juhui/api/programmes/${this.detailsId}`,
+          method: "get",
+          headers: {
+            "device-id": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        });
+        data = res.data.data.programme;
       }
+      this.xiaojudata.title = data.title;
+      store.dispatch("bar/setTitle", this.xiaojudata.title + " - 小橘");
+      this.xiaojudata.tag = data.category.name;
+      this.subtitleArr = [data.location, ...data.tags];
+      this.xiaojudata.introduction = data.summary;
+      this.xiaojudata.coverImageUrl = data.verticalCover;
+      this.stillsList = data.programmeImages;
+      this.allEpisodes = [[...data.resources]];
+      this.episodes = this.allEpisodes[this.playSourceValue];
       this.showOverlay = false;
       this.$nextTick(() => {
         this.init();
@@ -325,8 +393,14 @@ export default {
         click: true,
         eventPassthrough: "vertical",
       });
+      this.stillsBs = new BScroll(this.$refs.stills, {
+        scrollX: true,
+        probeType: 3, // listening scroll hook
+        click: true,
+        eventPassthrough: "vertical",
+      });
       if (window.fy_bridge_app) {
-        let history = window.request("hiker://files/nirvana_xx_history", {});
+        let history = window.request("hiker://files/nirvana_xj_history", {});
         if (!validatenull(history)) {
           history = JSON.parse(history);
           history.forEach((h) => {
@@ -341,6 +415,10 @@ export default {
     },
     refresh() {
       this.episodesOuterBs.refresh();
+      this.stillsBs.refresh();
+    },
+    showImg(index) {
+      ImagePreview(this.stillsList, index);
     },
     onRefresh() {
       this.showOverlay = true;
@@ -398,67 +476,34 @@ export default {
       document.documentElement.scrollTop = -parseInt(top, 10);
     },
     async playVideo(url, text) {
-      window.setTimeout(async () => {
-        if (window.fy_bridge_app) {
-          let history = await window.request(
-            "hiker://files/nirvana_xx_history",
-            {}
-          );
-          if (validatenull(history)) history = [];
-          else history = JSON.parse(history);
-          history.forEach((h, index) => {
-            if (h.id == this.detailsId) history.splice(index, 1);
-          });
-          history = [
-            {
-              id: this.detailsId,
-              title: this.mengmaindata.title,
-              url: url,
-              text: text,
-            },
-            ...history,
-          ];
-          if (history.length > 100) history.splice(100, 1);
-          history = JSON.stringify(history);
-          window.fy_bridge_app.writeFile(
-            "hiker://files/nirvana_xx_history",
-            history
-          );
-          let xxObj = JSON.parse(
-            window.request("hiker://files/nirvana_xxFile", {})
-          );
-          let token = xxObj.token;
-          let cookieArr = xxObj.cookie;
-          cookieArr = JSON.parse(cookieArr);
-          let cookie = "";
-          cookieArr.forEach((c) => {
-            cookie += c + ";";
-          });
-          let res = await window.request(url);
-          const $ = cheerio.load(res);
-          let hash = CryptoJS.MD5(
-            $("#show").attr("data-cv") + "|mengmiandaxia"
-          );
-          let id = $("#show").attr("data-ck");
-          let data = await window.request(
-            "https://mengmiandaxia.com/cloud.html",
-            {
-              headers: {
-                cookie: cookie,
-              },
-              method: "POST",
-              body: `_hash=${hash}&id=${id}&_token=${token}`,
-            }
-          );
-          data = JSON.parse(data);
-          let playUrl = pako.inflate(atob(data.url), { to: "string" });
-          window.fy_bridge_app.playVideo(
-            playUrl +
-              ";{User-Agent@Mozilla/5.0 (Linux；； Android 10；； M2006J10C Build/QP1A.190711.020；； wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/85.0.4183.120 Mobile Safari/537.36&&Referer@https://www.mengmiandaxia.com}"
-          );
-          this.showOverlay = false;
-        } else window.location.href = url;
-      }, 300);
+      if (window.fy_bridge_app) {
+        let history = await window.request(
+          "hiker://files/nirvana_xj_history",
+          {}
+        );
+        if (validatenull(history)) history = [];
+        else history = JSON.parse(history);
+        history.forEach((h, index) => {
+          if (h.id == this.detailsId) history.splice(index, 1);
+        });
+        history = [
+          {
+            id: this.detailsId,
+            title: this.xiaojudata.title,
+            url: url,
+            text: text,
+          },
+          ...history,
+        ];
+        if (history.length > 100) history.splice(100, 1);
+        history = JSON.stringify(history);
+        window.fy_bridge_app.writeFile(
+          "hiker://files/nirvana_xj_history",
+          history
+        );
+        let playUrl = url;
+        window.fy_bridge_app.playVideo(playUrl);
+      } else window.location.href = url;
     },
   },
 };
@@ -542,6 +587,20 @@ export default {
         // border-radius: 8px;
       }
     }
+  }
+}
+.show {
+  margin: 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 10px;
+  .title {
+    margin: 0;
+    padding: 16px;
+    color: @van-doc-text-light-blue;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 16px;
   }
 }
 
@@ -680,5 +739,10 @@ export default {
   background-color: rgba(32, 18, 217, 255);
   font-size: 14px;
   font-weight: 700;
+}
+.van-action-sheet__item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
