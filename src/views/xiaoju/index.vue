@@ -604,14 +604,14 @@ export default {
   margin: 15px;
   background-color: #ffffff;
   border-radius: 8px;
-  padding: 10px;
+  padding: 0.2rem 0.2rem;
   .title {
     margin: 0;
-    padding: 16px;
     color: @van-doc-text-light-blue;
     font-weight: normal;
+    color: #323233;
     font-size: 14px;
-    line-height: 16px;
+    line-height: 24px;
   }
 }
 
@@ -649,7 +649,7 @@ export default {
       display: inline-block;
       text-align: center;
       margin: 10px;
-      border-radius: 8px;
+      border-radius: 10px;
     }
   }
 }
