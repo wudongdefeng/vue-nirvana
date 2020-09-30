@@ -236,11 +236,26 @@ export default {
     [ImagePreview.Component.name]: ImagePreview.Component,
   },
   mounted() {
-    this.$nextTick(() => {
-      window.setTimeout(async () => {
-        await this.getData();
-      }, 1500);
-    });
+    if (this.$route.params.id)
+      this.$nextTick(() => {
+        window.setTimeout(async () => {
+          await this.getData();
+        }, 1500);
+        this.$nextTick(() => {
+          if (this.$route.params.playCoding) {
+            let playCoding = CryptoJS.enc.Base64.parse(
+              this.$route.params.playCoding
+            );
+            playCoding = playCoding.toString(CryptoJS.enc.Utf8);
+            let playObj = JSON.parse(playCoding);
+            this.$router.push({ path: `/xiaoxia/${this.$route.params.id}` });
+            window.setTimeout(async () => {
+              this.showOverlay = true;
+              this.playVideo(playObj.url, playObj.text);
+            }, 1600);
+          }
+        });
+      });
   },
   methods: {
     async getData() {
@@ -326,7 +341,10 @@ export default {
         eventPassthrough: "vertical",
       });
       if (window.fy_bridge_app) {
-        let history = window.request("hiker://files/nirvana_xx_history", {});
+        let history = window.request(
+          "hiker://files/nirvana/nirvana_xx_history",
+          {}
+        );
         if (!validatenull(history)) {
           history = JSON.parse(history);
           history.forEach((h) => {
@@ -401,7 +419,7 @@ export default {
       window.setTimeout(async () => {
         if (window.fy_bridge_app) {
           let history = await window.request(
-            "hiker://files/nirvana_xx_history",
+            "hiker://files/nirvana/nirvana_xx_history",
             {}
           );
           if (validatenull(history)) history = [];
@@ -415,17 +433,21 @@ export default {
               title: this.mengmaindata.title,
               url: url,
               text: text,
+              img: this.mengmaindata.coverImageUrl,
+              source: "涅槃.小虾",
+              time: Math.round(new Date() / 1000),
+              isPlayUrl: false
             },
             ...history,
           ];
           if (history.length > 100) history.splice(100, 1);
           history = JSON.stringify(history);
           window.fy_bridge_app.writeFile(
-            "hiker://files/nirvana_xx_history",
+            "hiker://files/nirvana/nirvana_xx_history",
             history
           );
           let xxObj = JSON.parse(
-            window.request("hiker://files/nirvana_xxFile", {})
+            window.request("hiker://files/nirvana/nirvana_xxFile", {})
           );
           let token = xxObj.token;
           let cookieArr = xxObj.cookie;

@@ -17,10 +17,9 @@
         >
           <div
             @click="
-              showOverlay = true;
               $nextTick(() => {
                 playVideo(sequelTips.url, sequelTips.text);
-              });
+              })
             "
             slot="default"
           >
@@ -218,6 +217,8 @@
         @select="clarityOnSelect"
       />
       <van-action-sheet
+        :closeable="false"
+        :title="playInterface.title"
         v-model="playInterface.show"
         :actions="playInterface.actions"
         @select="playInterfaceOnSelect"
@@ -245,6 +246,7 @@ export default {
         actions: [],
       },
       playInterface: {
+        title: "",
         show: false,
         actions: [],
       },
@@ -290,6 +292,11 @@ export default {
     [ImagePreview.Component.name]: ImagePreview.Component,
   },
   mounted() {
+    if (this.$route.params.playUrlCoding) {
+      window.setTimeout(async () => {
+        await this.getData();
+      }, 1500);
+    }
     this.$nextTick(() => {
       window.setTimeout(async () => {
         await this.getData();
@@ -328,15 +335,12 @@ export default {
           });
       }
       window.setTimeout(() => {
-        playInterface = [
-          { name: `共${number}条可用播放链接`, color: "#ee0a24", title: true },
-          ...playInterface,
-        ];
+        this.playInterface.title = `共${number}条可用播放链接`;
         this.playInterface.actions = playInterface;
         this.clarity.show = false;
         this.playInterface.show = true;
         this.showOverlay = false;
-      }, 3100);
+      }, 2000);
     },
     async getData() {
       let res = {};
@@ -400,7 +404,10 @@ export default {
         eventPassthrough: "vertical",
       });
       if (window.fy_bridge_app) {
-        let history = window.request("hiker://files/nirvana_xj_history", {});
+        let history = window.request(
+          "hiker://files/nirvana/nirvana_xj_history",
+          {}
+        );
         if (!validatenull(history)) {
           history = JSON.parse(history);
           history.forEach((h) => {
@@ -478,7 +485,7 @@ export default {
     async playVideo(url, text) {
       if (window.fy_bridge_app) {
         let history = await window.request(
-          "hiker://files/nirvana_xj_history",
+          "hiker://files/nirvana/nirvana_xj_history",
           {}
         );
         if (validatenull(history)) history = [];
@@ -492,13 +499,17 @@ export default {
             title: this.xiaojudata.title,
             url: url,
             text: text,
+            img: this.xiaojudata.coverImageUrl,
+            source: "涅槃.小橘",
+            time: Math.round(new Date() / 1000),
+            isPlayUrl: true,
           },
           ...history,
         ];
         if (history.length > 100) history.splice(100, 1);
         history = JSON.stringify(history);
         window.fy_bridge_app.writeFile(
-          "hiker://files/nirvana_xj_history",
+          "hiker://files/nirvana/nirvana_xj_history",
           history
         );
         let playUrl = url;
@@ -744,5 +755,11 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.van-action-sheet__header {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
 }
 </style>

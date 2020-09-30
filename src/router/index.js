@@ -8,10 +8,10 @@ const routes = [
   {
     path: '/',
     component: Layout,
-    redirect: '/xiaoxia',
+    redirect: '/',
     hidden: true,
     children: [{
-      path: 'xiaoxia/:id',
+      path: 'xiaoxia/:id/:playCoding?',
       component: () => import('@/views/xiaoxia/index.vue'),
       name: 'xiaoxia',
       meta: {

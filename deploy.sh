@@ -14,6 +14,6 @@ git add -A
 git commit -m 'deploy'
 
 # 部署到 https://<USERNAME>.github.io/<REPO>
-git push -f git@gitee.com:peng_yongteng/vue-nirvana.git master:git-pages
+git push -f https://github.com/Lingyan000/videotest.git master:git-pages
 
 cd -
