@@ -68,15 +68,11 @@ export default {
     });
   },
   methods: {
-    test(item) {
-      console.log(item);
-    },
     fetchSringToObject(url, headers) {
       if (window.fy_bridge_app) {
         let file = window.request(url, headers || {});
         if (validatenull(file)) file = [];
         else file = JSON.parse(file);
-        console.log(file);
         return file;
       }
     },
@@ -109,6 +105,7 @@ export default {
       }, 300);
     },
     deleteRecord(item) {
+      this.showOverlay = true;
       if (item.source == "涅槃.小虾") {
         let xx_history = this.fetchSringToObject(
           "hiker://files/nirvana/nirvana_xx_history"
@@ -123,8 +120,7 @@ export default {
         );
         this.getData();
         Toast("删除成功");
-      }
-      else if (item.source == "涅槃.小橘") {
+      } else if (item.source == "涅槃.小橘") {
         let xj_history = this.fetchSringToObject(
           "hiker://files/nirvana/nirvana_xj_history"
         );
@@ -133,7 +129,7 @@ export default {
         });
         xj_history = JSON.stringify(xj_history);
         window.fy_bridge_app.writeFile(
-          "hiker://files/nirvana/nirvana_xx_history",
+          "hiker://files/nirvana/nirvana_xj_history",
           xj_history
         );
         this.getData();
@@ -141,6 +137,9 @@ export default {
       } else {
         Toast("删除失败，未知来源");
       }
+      this.$nextTick(() => {
+        this.showOverlay = false;
+      });
     },
   },
 };

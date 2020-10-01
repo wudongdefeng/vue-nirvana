@@ -508,7 +508,9 @@ export default {
           history
         );
         let playUrl = url;
-        window.fy_bridge_app.playVideo(playUrl);
+        this.$nextTick(() => {
+          window.fy_bridge_app.playVideo(playUrl);
+        });
       } else window.location.href = url;
     },
   },
