@@ -14,7 +14,7 @@
             <van-card
               :desc="'来源：' + (item.source || '未知来源')"
               :title="item.title.replace(/[\n\r\t]/g, '')"
-              class="goods-card"
+              class="record-card"
             >
               <template #thumb>
                 <div
@@ -25,7 +25,24 @@
               <template #price>
                 {{ "点击恢复到播放\t" + item.text.replace(/[\n\r\t]/g, "") }}
               </template>
+              <template #tag v-if="item.isTop">
+                <van-tag color="rgba(32, 18, 217, 255)" style="font-weight: 700"
+                  >置顶</van-tag
+                >
+              </template>
             </van-card>
+            <template #left>
+              <van-button
+                square
+                type="default"
+                class="top-button"
+                :text="item.isTop ? '取消' : '置顶'"
+                @click="topRecord(item, item.isTop)"
+                :color="
+                  item.isTop ? 'rgba(0, 0, 0, 0.4)' : 'rgba(32, 18, 217, 255)'
+                "
+              />
+            </template>
             <template #right>
               <van-button
                 square
@@ -104,6 +121,62 @@ export default {
         });
       }, 300);
     },
+    topRecord(item, isCancel) {
+      this.showOverlay = true;
+      if (item.source == "涅槃.小虾") {
+        let xx_history = this.fetchSringToObject(
+          "hiker://files/nirvana/nirvana_xx_history"
+        );
+        xx_history.forEach((h) => {
+          if (h.id == item.id && !isCancel) {
+            h.originalTime = h.time;
+            h.time = 100000000000000;
+            h.isTop = true;
+          }
+          if (h.id == item.id && isCancel) {
+            h.time = h.originalTime;
+            h.isTop = false;
+          }
+        });
+        xx_history = JSON.stringify(xx_history);
+        window.fy_bridge_app.writeFile(
+          "hiker://files/nirvana/nirvana_xx_history",
+          xx_history
+        );
+        this.getData();
+        if (isCancel) Toast("取消成功");
+        else Toast("置顶成功");
+      } else if (item.source == "涅槃.小橘") {
+        let xj_history = this.fetchSringToObject(
+          "hiker://files/nirvana/nirvana_xj_history"
+        );
+        xj_history.forEach((h) => {
+          if (h.id == item.id && !isCancel) {
+            h.originalTime = h.time;
+            h.time = 100000000000000;
+            h.isTop = true;
+          }
+          if (h.id == item.id && isCancel) {
+            h.time = h.originalTime;
+            h.isTop = false;
+          }
+        });
+        xj_history = JSON.stringify(xj_history);
+        window.fy_bridge_app.writeFile(
+          "hiker://files/nirvana/nirvana_xj_history",
+          xj_history
+        );
+        this.getData();
+        if (isCancel) Toast("取消成功");
+        else Toast("置顶成功");
+      } else {
+        if (isCancel) Toast("取消失败，未知来源");
+        else Toast("置顶失败，未知来源");
+      }
+      this.$nextTick(() => {
+        this.showOverlay = false;
+      });
+    },
     deleteRecord(item) {
       this.showOverlay = true;
       if (item.source == "涅槃.小虾") {
@@ -154,14 +227,15 @@ export default {
   align-items: center;
   justify-content: center;
 }
-.goods-card {
+.record-card {
   margin: 0;
   background-color: #fff;
 }
-
-.delete-button {
+.delete-button,
+.top-button {
   height: 100%;
 }
+
 #history {
   .van-card {
     position: relative;

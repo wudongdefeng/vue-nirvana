@@ -3,13 +3,12 @@
     <van-sticky>
       <van-nav-bar :title="title" left-text="返回" left-arrow>
         <template #right>
-          <a href="hiker://search?s=**">
-            <van-icon
-              name="search"
-              size="18"
-              color="rgba(34, 34, 34, 255)"
-              @click="hikerSearch"
-          /></a>
+          <van-icon
+            name="search"
+            size="18"
+            color="rgba(34, 34, 34, 255)"
+            @click="hikerSearch"
+          />
         </template>
         <template #left>
           <van-icon
@@ -36,12 +35,12 @@ import { mapGetters } from "vuex";
 import AppMain from "./components/AppMain";
 export default {
   computed: {
-    ...mapGetters(["title"]),
+    ...mapGetters(["title", "search"]),
   },
   components: { AppMain },
   methods: {
     hikerSearch() {
-      window.location.href = "hiker://search?s=**";
+      window.location.href = "hiker://search";
     },
     hikerHome() {
       window.location.href = "hiker://home";
