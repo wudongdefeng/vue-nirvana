@@ -292,11 +292,6 @@ export default {
     [ImagePreview.Component.name]: ImagePreview.Component,
   },
   mounted() {
-    if (this.$route.params.playUrlCoding) {
-      window.setTimeout(async () => {
-        await this.getData();
-      }, 1500);
-    }
     this.$nextTick(() => {
       window.setTimeout(async () => {
         await this.getData();

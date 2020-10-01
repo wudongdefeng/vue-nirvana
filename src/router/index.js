@@ -25,6 +25,14 @@ const routes = [
       meta: {
         title: "小橘"
       }
+    },
+    {
+      path: 'history',
+      component: () => import('@/views/history/index.vue'),
+      name: 'history',
+      meta: {
+        title: "记录管理"
+      }
     }
     ]
   },
