@@ -82,6 +82,7 @@
             <div class="scroll-wrapper" ref="episodesOuter">
               <div class="scroll-content">
                 <van-button
+                  v-tooltip="item.text"
                   round
                   v-for="(item, index) in [...episodes].splice(0, 10)"
                   :key="index"
@@ -182,6 +183,7 @@
                   :key="index"
                 >
                   <van-button
+                    v-tooltip="item.text"
                     @click="
                       clarity.actions = item.data.map((e) => {
                         e.name = e.displayName;

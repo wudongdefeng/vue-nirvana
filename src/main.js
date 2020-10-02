@@ -7,8 +7,10 @@ import 'vant/lib/index.css';
 import '@vant/touch-emulator';
 import '@/styles/index.less' // global css
 import './permission' // permission control
+import VTooltip from 'v-tooltip'
 
 Vue.use(Vant);
+Vue.use(VTooltip)
 
 Vue.config.productionTip = false
 

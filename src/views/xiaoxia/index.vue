@@ -72,6 +72,7 @@
               <div class="scroll-content">
                 <van-button
                   round
+                  v-tooltip="item.text"
                   v-for="(item, index) in [...episodes].splice(0, 10)"
                   :key="index"
                   class="scroll-item selectionButton"
@@ -152,6 +153,7 @@
                   :key="index"
                 >
                   <van-button
+                    v-tooltip="item.text"
                     @click="
                       showOverlay = true;
                       $nextTick(() => {
@@ -436,7 +438,7 @@ export default {
               img: this.mengmaindata.coverImageUrl,
               source: "涅槃.小虾",
               time: Math.round(new Date() / 1000),
-              isPlayUrl: false
+              isPlayUrl: false,
             },
             ...history,
           ];
