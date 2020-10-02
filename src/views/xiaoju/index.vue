@@ -63,8 +63,13 @@
                 >
               </div>
               <div class="updateTime">
-                <span>{{ xiaojudata.updateTime }}</span>
+                <span>{{
+                  xiaojudata.updateTime + " " + xiaojudata.updateProgress
+                }}</span>
               </div>
+              <!-- <div class="updateProgress">
+                <span>{{ xiaojudata.updateProgress }}</span>
+              </div> -->
             </div>
             <div class="pic">
               <div
@@ -79,7 +84,11 @@
         <div class="selections" v-show="playShow">
           <van-cell title="选集" is-link @click="showPopup" />
           <div class="horizontal-container">
-            <div class="scroll-wrapper" ref="episodesOuter">
+            <div
+              class="scroll-wrapper"
+              ref="episodesOuter"
+              style="margin: 10px 16px 0px 16px"
+            >
               <div class="scroll-content">
                 <van-button
                   v-tooltip="item.text"
@@ -108,9 +117,35 @@
             </div>
           </div>
         </div>
+        <div class="acting">
+          <h2 class="title">演职人员</h2>
+          <div class="horizontal-container" style="padding-bottom: 0rem">
+            <div class="scroll-wrapper" ref="acting">
+              <div class="scroll-content">
+                <div
+                  v-for="(item, index) in xiaojudata.actingList"
+                  :key="index"
+                  class="scroll-item"
+                  style="text-align: center"
+                >
+                  <div class="actingPic">
+                    <div
+                      :style="'background-image: url(' + item.avatar + ');'"
+                      class="cover"
+                    />
+                  </div>
+                  <div :key="index">
+                    <div class="name">{{ item.name }}</div>
+                    <div class="role">{{ item.role }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="show">
           <h2 class="title">预告片 / 剧照</h2>
-          <div class="horizontal-container">
+          <div class="horizontal-container" style="padding-bottom: 0rem">
             <div class="scroll-wrapper" ref="stills">
               <div class="scroll-content">
                 <img
@@ -166,12 +201,26 @@
             v-model="sortValue"
             :options="sort"
           />
+          <van-dropdown-item
+            @change="
+              (value) => {
+                currentPage = 1;
+                $nextTick(() => {
+                  episodesBs.refresh();
+                });
+              }
+            "
+            v-model="layout.value"
+            :options="layout.options"
+          />
         </van-dropdown-menu>
         <div class="core-container">
           <div class="scroll-wrapper" ref="episodes">
             <div class="scroll-content">
-              <ul>
-                <li
+              <van-row>
+                <van-col
+                  :span="layout.value"
+                  style="text-align: center"
                   v-for="(item, index) in sortValue
                     ? [...episodes].splice(
                         (currentPage - 1) * 50,
@@ -196,16 +245,16 @@
                     class="scroll-item selectionButton"
                     >{{ item.episode }}</van-button
                   >
-                </li>
-              </ul>
+                </van-col>
+              </van-row>
             </div>
           </div>
         </div>
         <van-pagination
           v-model="currentPage"
           :total-items="24"
-          :page-count="Math.ceil(episodes.length / 50)"
-          :items-per-page="50"
+          :page-count="Math.ceil(episodes.length / 40)"
+          :items-per-page="40"
           @change="
             $nextTick(() => {
               episodesBs.refresh();
@@ -236,13 +285,21 @@ import ScrollBar from "@better-scroll/scroll-bar";
 import axios from "axios";
 import store from "@/store";
 import { validatenull } from "@/utils/validate";
-
+import moment from "moment";
 BScroll.use(ScrollBar);
 
 export default {
   name: "xiaoju",
   data() {
     return {
+      layout: {
+        options: [
+          { text: "4×10", value: 6 },
+          { text: "2×20", value: 12 },
+          { text: "1×40", value: 24 },
+        ],
+        value: 6,
+      },
       clarity: {
         show: false,
         actions: [],
@@ -287,6 +344,8 @@ export default {
         coverImageUrl: "",
         updateTime: "",
         area: "",
+        updateProgress: "",
+        actingList: [],
       },
     };
   },
@@ -377,8 +436,13 @@ export default {
       store.dispatch("bar/setTitle", this.xiaojudata.title + " - 小橘");
       this.xiaojudata.tag = data.category.name;
       this.subtitleArr = [data.location, ...data.tags];
+      this.xiaojudata.updateTime =
+        "更新：" + moment(data.updatedAt).format("YYYY-MM-DD");
+      this.xiaojudata.updateProgress =
+        data.resourceCount + "/" + data.episodesCount + "集";
       this.xiaojudata.introduction = data.summary;
       this.xiaojudata.coverImageUrl = data.verticalCover;
+      this.xiaojudata.actingList = data.actors;
       this.stillsList = data.programmeImages;
       this.allEpisodes = [[...data.resources]];
       this.episodes = this.allEpisodes[this.playSourceValue];
@@ -395,6 +459,12 @@ export default {
         eventPassthrough: "vertical",
       });
       this.stillsBs = new BScroll(this.$refs.stills, {
+        scrollX: true,
+        probeType: 3, // listening scroll hook
+        click: true,
+        eventPassthrough: "vertical",
+      });
+      this.actingBs = new BScroll(this.$refs.acting, {
         scrollX: true,
         probeType: 3, // listening scroll hook
         click: true,
@@ -575,6 +645,11 @@ export default {
         line-height: 1;
         font-size: 14px;
       }
+      // .updateProgress {
+      //   margin-top: 14px;
+      //   line-height: 1;
+      //   font-size: 14px;
+      // }
       flex: 1;
       display: table-cell;
       vertical-align: top;
@@ -613,6 +688,50 @@ export default {
     line-height: 24px;
   }
 }
+.acting {
+  margin: 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 0.2rem 0.2rem;
+  .title {
+    margin: 0;
+    color: @van-doc-text-light-blue;
+    font-weight: normal;
+    color: #323233;
+    font-size: 14px;
+    line-height: 24px;
+  }
+  .actingPic {
+    margin: 0 auto;
+    display: block;
+    width: 0.6rem;
+    height: 0.6rem;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    overflow: hidden;
+    .cover {
+      background-size: cover;
+      background-position: 50% 20%;
+      // vertical-align: top;
+      width: 100%;
+      height: 100%;
+      // margin-right: 10px;
+      // border-radius: 8px;
+    }
+  }
+  .name {
+    margin-top: 2px;
+    font-size: 14px;
+    line-height: 22px;
+    color: rgba(0, 0, 0, 0.86);
+    margin-bottom: 2px;
+  }
+  .role {
+    font-size: 10px;
+    line-height: 16px;
+    color: rgba(0, 0, 0, 0.3);
+  }
+}
 
 .core-container {
   height: calc(80vh - 88px);
@@ -622,21 +741,21 @@ export default {
     border-radius: 5px;
     overflow: hidden;
 
-    .scroll-content {
-      display: inline-block;
-      ul {
-        width: 100vw;
-        li {
-          display: block;
-          float: left;
-          width: 25vw;
-          text-align: center;
-        }
-      }
-    }
+    // .scroll-content {
+    //   display: inline-block;
+    //   ul {
+    //     width: 100vw;
+    //     li {
+    //       display: block;
+    //       float: left;
+    //       width: 25vw;
+    //       text-align: center;
+    //     }
+    //   }
+    // }
 
     .scroll-item.van-button {
-      width: 4.8em;
+      width: 80%;
       height: 2.1em;
       &__text {
         overflow: hidden;
@@ -655,10 +774,10 @@ export default {
 
 .horizontal-container {
   padding-bottom: 0.16rem;
-  touch-action: none;
+  // touch-action: none;
   .scroll-wrapper {
     position: relative;
-    width: 90%;
+    // width: 90%;
     margin-top: 0.1rem;
     // margin: 10px auto;
     white-space: nowrap;
@@ -671,11 +790,13 @@ export default {
 
     img {
       height: 100px;
+      border-radius: 10px;
     }
 
     .scroll-item.van-button {
       min-width: 4.8em;
       height: 2.1em;
+      border-radius: 8px;
       &__text {
         overflow: hidden;
         text-overflow: ellipsis;
@@ -686,7 +807,7 @@ export default {
       display: inline-block;
       text-align: center;
       margin: 0 10px;
-      border-radius: 8px;
+      // border-radius: 8px;
     }
     .seeMore.van-button {
       width: 6.3em;

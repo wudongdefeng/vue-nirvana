@@ -38,8 +38,12 @@
                 class="top-button"
                 :text="item.isTop ? '取消' : '置顶'"
                 @click="topRecord(item, item.isTop)"
+                :style="{
+                  border: 'none',
+                  color: item.isTop ? '#3b45ef' : '#fff'
+                }"
                 :color="
-                  item.isTop ? 'rgba(0, 0, 0, 0.4)' : 'rgba(32, 18, 217, 255)'
+                  item.isTop ? 'rgba(59,69,239,.1)' : 'rgba(32, 18, 217, 255)'
                 "
               />
             </template>

@@ -68,7 +68,11 @@
         <div class="selections" v-show="playShow">
           <van-cell title="选集" is-link @click="showPopup" />
           <div class="horizontal-container">
-            <div class="scroll-wrapper" ref="episodesOuter">
+            <div
+              class="scroll-wrapper"
+              ref="episodesOuter"
+              style="margin: 10px 16px 0px 16px"
+            >
               <div class="scroll-content">
                 <van-button
                   round
@@ -136,20 +140,34 @@
             v-model="sortValue"
             :options="sort"
           />
+          <van-dropdown-item
+            @change="
+              (value) => {
+                currentPage = 1;
+                $nextTick(() => {
+                  episodesBs.refresh();
+                });
+              }
+            "
+            v-model="layout.value"
+            :options="layout.options"
+          />
         </van-dropdown-menu>
         <div class="core-container">
           <div class="scroll-wrapper" ref="episodes">
             <div class="scroll-content">
-              <ul>
-                <li
+              <van-row>
+                <van-col
+                  :span="layout.value"
+                  style="text-align: center"
                   v-for="(item, index) in sortValue
                     ? [...episodes].splice(
-                        (currentPage - 1) * 50,
-                        currentPage * 50
+                        (currentPage - 1) * 40,
+                        currentPage * 40
                       )
                     : [...episodes]
                         .reverse()
-                        .splice((currentPage - 1) * 50, currentPage * 50)"
+                        .splice((currentPage - 1) * 40, currentPage * 40)"
                   :key="index"
                 >
                   <van-button
@@ -164,16 +182,16 @@
                     class="scroll-item selectionButton"
                     >{{ item.text }}</van-button
                   >
-                </li>
-              </ul>
+                </van-col>
+              </van-row>
             </div>
           </div>
         </div>
         <van-pagination
           v-model="currentPage"
           :total-items="24"
-          :page-count="Math.ceil(episodes.length / 50)"
-          :items-per-page="50"
+          :page-count="Math.ceil(episodes.length / 40)"
+          :items-per-page="40"
           @change="
             $nextTick(() => {
               episodesBs.refresh();
@@ -202,6 +220,14 @@ export default {
   name: "xiaoxia",
   data() {
     return {
+      layout: {
+        options: [
+          { text: "4×10", value: 6 },
+          { text: "2×20", value: 12 },
+          { text: "1×40", value: 24 },
+        ],
+        value: 6,
+      },
       sequelTips: {
         show: false,
         text: "",
@@ -577,21 +603,21 @@ export default {
     border-radius: 5px;
     overflow: hidden;
 
-    .scroll-content {
-      display: inline-block;
-      ul {
-        width: 100vw;
-        li {
-          display: block;
-          float: left;
-          width: 25vw;
-          text-align: center;
-        }
-      }
-    }
+    // .scroll-content {
+    //   display: inline-block;
+    //   ul {
+    //     width: 100vw;
+    //     li {
+    //       display: block;
+    //       float: left;
+    //       // width: 25vw;
+    //       text-align: center;
+    //     }
+    //   }
+    // }
 
     .scroll-item.van-button {
-      width: 4.8em;
+      width: 80%;
       height: 2.1em;
       &__text {
         overflow: hidden;
@@ -610,10 +636,10 @@ export default {
 
 .horizontal-container {
   padding-bottom: 0.16rem;
-  touch-action: none;
+  // touch-action: none;
   .scroll-wrapper {
     position: relative;
-    width: 90%;
+    // width: 90%;
     margin-top: 0.1rem;
     // margin: 10px auto;
     white-space: nowrap;
