@@ -268,7 +268,7 @@ export default {
       this.$nextTick(() => {
         window.setTimeout(async () => {
           await this.getData();
-        }, 1500);
+        }, 500);
         this.$nextTick(() => {
           if (this.$route.params.playCoding) {
             let playCoding = CryptoJS.enc.Base64.parse(
