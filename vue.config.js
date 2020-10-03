@@ -92,10 +92,7 @@ module.exports = {
             cheerio: "cheerio",
             "crypto-js": "crypto-js",
             "v-tooltip": "v-tooltip",
-            "@better-scroll/core": "@better-scroll/core",
-            "@better-scroll/nested-scroll": "@better-scroll/nested-scroll",
-            "@better-scroll/observe-dom": "@better-scroll/observe-dom",
-            "@better-scroll/scroll-bar": "@better-scroll/scroll-bar",
+            "better-scroll": "@better-scroll",
         },
         resolve: {
             alias: {
