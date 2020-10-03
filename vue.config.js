@@ -89,8 +89,8 @@ module.exports = {
             vuex: "Vuex",
             axios: "axios",
             moment: "moment",
-            cheerio: "cheerio",
-            "crypto-js": "crypto-js",
+            // cheerio: "cheerio",
+            // "crypto-js": "crypto-js",
             "v-tooltip": "v-tooltip",
             "better-scroll": "@better-scroll",
         },
@@ -118,8 +118,8 @@ module.exports = {
                     "https://cdn.jsdelivr.net/npm/moment@2.29.0/moment.min.js",
                     "https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.min.js",
                     "https://cdn.jsdelivr.net/npm/vant@2.10/lib/vant.min.js",
-                    "https://cdn.jsdelivr.net/npm/cheerio@1.0.0-rc.3/dist/cheerio.min.js",
-                    "https://cdn.jsdelivr.net/npm/crypto-js@4.0.0/dist/crypto-js.min.js",
+                    // "https://cdn.jsdelivr.net/npm/cheerio@1.0.0-rc.3/lib/cheerio.min.js",
+                    // "https://cdn.jsdelivr.net/npm/crypto-js@4.0.0/crypto-js.min.js",
                     "https://cdn.jsdelivr.net/npm/v-tooltip@2.0.3/dist/v-tooltip.min.js",
                     "https://unpkg.com/better-scroll@latest/dist/better-scroll.min.js"
                 ]
