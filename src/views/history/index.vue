@@ -10,10 +10,10 @@
         style="min-height: calc(100vh - 46px)"
       >
         <div class="box" style="min-height: calc(100vh - 46px)">
-          <van-swipe-cell v-for="(item, index) in historyArr" :key="index">
+          <van-swipe-cell v-for="(item, index) in historyArr" :key="index" right-width="150">
             <van-card
               :desc="'来源：' + (item.source || '未知来源')"
-              :title="item.title.replace(/[\n\r\t]/g, '')"
+              :title="item.title ? item.title.replace(/[\n\r\t]/g, '') : ''"
               class="record-card"
             >
               <template #thumb>
@@ -23,7 +23,7 @@
                 />
               </template>
               <template #price>
-                {{ "点击恢复到播放\t" + item.text.replace(/[\n\r\t]/g, "") }}
+                {{ item.title ? "点击恢复到播放\t" + item.text.replace(/[\n\r\t]/g, "") : "" }}
               </template>
               <template #tag v-if="item.isTop">
                 <van-tag color="rgba(32, 18, 217, 255)" style="font-weight: 700"
@@ -31,28 +31,30 @@
                 >
               </template>
             </van-card>
-            <template #left>
+            <template #right>
               <van-button
                 square
+                icon-prefix="iconfont"
+                :icon="item.isTop ? 'restore' : 'top'"
                 type="default"
-                class="top-button"
+                class="top-button slideButton"
                 :text="item.isTop ? '取消' : '置顶'"
                 @click="topRecord(item, item.isTop)"
                 :style="{
                   border: 'none',
-                  color: item.isTop ? '#3b45ef' : '#fff'
+                  color: item.isTop ? '#3b45ef' : '#fff',
                 }"
                 :color="
                   item.isTop ? 'rgba(59,69,239,.1)' : 'rgba(32, 18, 217, 255)'
                 "
               />
-            </template>
-            <template #right>
               <van-button
+                icon-prefix="iconfont"
+                icon="del"
                 square
                 text="删除"
                 type="danger"
-                class="delete-button"
+                class="delete-button slideButton"
                 @click="deleteRecord(item)"
               />
             </template>
@@ -112,6 +114,7 @@ export default {
         this.historyArr = historyArr;
         this.showOverlay = false;
       } else {
+        //this.historyArr = [{text: 1},{text: 1,isTop: true}];
         this.showOverlay = false;
       }
     },
@@ -237,7 +240,22 @@ export default {
 }
 .delete-button,
 .top-button {
+  width: 75px;
   height: 100%;
+}
+.slideButton {
+  .van-button__content {
+    flex-wrap: wrap;
+    align-content: center;
+  }
+  .van-button__icon {
+    width: 100%;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .van-button__text {
+    margin-left: 0px;
+  }
 }
 
 #history {

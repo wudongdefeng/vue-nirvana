@@ -223,12 +223,12 @@
                   style="text-align: center"
                   v-for="(item, index) in sortValue
                     ? [...episodes].splice(
-                        (currentPage - 1) * 50,
-                        currentPage * 50
+                        (currentPage - 1) * 40,
+                        currentPage * 40
                       )
                     : [...episodes]
                         .reverse()
-                        .splice((currentPage - 1) * 50, currentPage * 50)"
+                        .splice((currentPage - 1) * 40, currentPage * 40)"
                   :key="index"
                 >
                   <van-button
@@ -286,6 +286,7 @@ import axios from "axios";
 import store from "@/store";
 import { validatenull } from "@/utils/validate";
 import moment from "moment";
+import cheerio from "cheerio";
 BScroll.use(ScrollBar);
 
 export default {
@@ -410,17 +411,23 @@ export default {
         // cookieArr.forEach((c) => {
         //   cookie += c + ";";
         // });
+        // res = await window.request(
+        //   `https://api.simpleplay.cn/api/programmes/${this.detailsId}`,
+        //   {
+        //     headers: {
+        //       "Device-ID": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
+        //       "User-Agent": "Viewer/2.1.2",
+        //     },
+        //     method: "GET",
+        //   }
+        // );
         res = await window.request(
-          `https://api.simpleplay.cn/api/programmes/${this.detailsId}`,
-          {
-            headers: {
-              "Device-ID": "1d4c5ece-f8f7-36f3-b8f4-55cba7d7c14c",
-              "User-Agent": "Viewer/2.1.2",
-            },
-            method: "GET",
-          }
+          `https://www.juhuitv.com/moviedetail/${this.detailsId}.html`,
+          {}
         );
-        data = JSON.parse(res).data.programme;
+        const $ = cheerio.load(res);
+        data = JSON.parse($("#__NEXT_DATA__").html()).props.pageProps.movieInfo;
+        //data = JSON.parse(res).data.programme;
       } else {
         res = await axios({
           url: `/juhui/api/programmes/${this.detailsId}`,
@@ -551,6 +558,50 @@ export default {
     },
     async playVideo(url, text) {
       if (window.fy_bridge_app) {
+        let playUrl = url;
+        let playUrlArr = [];
+        let domain = `https://ipfs${
+          playUrl.match(/ipfs(.*)\.365kqzs/)[1]
+        }.365kqzs.cn:9081/ipfs/`;
+        this.episodes.forEach((e) => {
+          let isClarity = false;
+          e.data.forEach((d) => {
+            if (
+              d.hash == playUrl.split("ipfs/")[1] &&
+              text.split(" - ")[1] == d.displayName
+            ) {
+              isClarity = true;
+              playUrlArr.push({
+                title: this.xiaojudata.title + " - " + text,
+                url: playUrl,
+                use: true,
+              });
+            } else if (text.split(" - ")[1] == d.displayName) {
+              isClarity = true;
+              playUrlArr.push({
+                title:
+                  this.xiaojudata.title +
+                  " - " +
+                  e.episode +
+                  " - " +
+                  d.displayName,
+                url: domain + d.hash,
+                use: false,
+              });
+            }
+          });
+          if (!isClarity)
+            playUrlArr.push({
+              title:
+                this.xiaojudata.title +
+                " - " +
+                e.episode +
+                " - " +
+                e.data[0].displayName,
+              url: domain + e.data[0].hash,
+              use: false,
+            });
+        });
         let history = await window.request(
           "hiker://files/nirvana/nirvana_xj_history",
           {}
@@ -570,6 +621,7 @@ export default {
             source: "涅槃.小橘",
             time: Math.round(new Date() / 1000),
             isPlayUrl: true,
+            playUrlArr,
           },
           ...history,
         ];
@@ -579,9 +631,9 @@ export default {
           "hiker://files/nirvana/nirvana_xj_history",
           history
         );
-        let playUrl = url;
+
         this.$nextTick(() => {
-          window.fy_bridge_app.playVideo(playUrl);
+          window.fy_bridge_app.playVideos(JSON.stringify(playUrlArr));
         });
       } else window.location.href = url;
     },
