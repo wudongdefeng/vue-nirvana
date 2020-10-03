@@ -365,7 +365,7 @@ export default {
       if (!item.title) this.playVideo(item.name, item.text);
     },
     async clarityOnSelect(item) {
-      // this.showOverlay = true;
+      this.showOverlay = true;
       let xiaojuAxios = axios.create({
         timeout: 1500,
       });
