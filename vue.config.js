@@ -121,7 +121,7 @@ module.exports = {
                     // "https://cdn.jsdelivr.net/npm/cheerio@1.0.0-rc.3/lib/cheerio.min.js",
                     // "https://cdn.jsdelivr.net/npm/crypto-js@4.0.0/crypto-js.min.js",
                     "https://cdn.jsdelivr.net/npm/v-tooltip@2.0.3/dist/v-tooltip.min.js",
-                    "https://unpkg.com/better-scroll@latest/dist/better-scroll.min.js"
+                    "https://cdn.jsdelivr.net/npm/better-scroll@2.0.4/dist/better-scroll.min.js"
                 ]
             },
         }
