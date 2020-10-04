@@ -4,6 +4,7 @@ pages: # 必须定义一个名为 pages 的 job
   image: node:latest
   stage: deploy
   script:
+    - npm install
     - npm ci
     - npm run build
     - mv public public-vue # GitLab Pages 的钩子设置在 public 文件夹
