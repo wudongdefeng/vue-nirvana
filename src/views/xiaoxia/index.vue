@@ -519,8 +519,8 @@ export default {
               playUrlArr.push({
                 title: this.mengmaindata.title + e.text,
                 use: false,
-                originalUrl: `hiker://empty@lazyRule=.js:${hikerMethods}unzip("${data.url}")`,
-                codeAndHeader: ";get;utf-8;{User-Agent@Mozilla/5.0 (Linux；； Android 10；； M2006J10C Build/QP1A.190711.020；； wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/85.0.4183.120 Mobile Safari/537.36&&Referer@https://www.mengmiandaxia.com}",
+                originalUrl: `hiker://empty@lazyRule=.js:${hikerMethods}unzip("${data.url}")+";{User-Agent@Mozilla/5.0 (Linux；；；； Android 10；；；； M2006J10C Build/QP1A.190711.020；；；； wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/85.0.4183.120 Mobile Safari/537.36&&Referer@https://www.mengmiandaxia.com}";`,
+                codeAndHeader: ";get",
               });
             }
           });
