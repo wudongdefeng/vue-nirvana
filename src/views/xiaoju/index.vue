@@ -266,6 +266,7 @@
         v-model="clarity.show"
         :actions="clarity.actions"
         @select="clarityOnSelect"
+        cancel-text="取消"
       />
       <van-action-sheet
         :closeable="false"
@@ -273,6 +274,7 @@
         v-model="playInterface.show"
         :actions="playInterface.actions"
         @select="playInterfaceOnSelect"
+        cancel-text="取消"
       />
     </div>
   </div>
@@ -287,12 +289,15 @@ import store from "@/store";
 import { validatenull } from "@/utils/validate";
 import moment from "moment";
 import cheerio from "cheerio";
+import Cookies from "js-cookie";
 BScroll.use(ScrollBar);
 
 export default {
   name: "xiaoju",
   data() {
     return {
+      Cookies,
+      lastTimeLine: Cookies.get("lastTimeLine"),
       layout: {
         options: [
           { text: "4×10", value: 6 },
@@ -362,6 +367,9 @@ export default {
   },
   methods: {
     async playInterfaceOnSelect(item) {
+      item.color = "#aacfd0";
+      Cookies.set("lastTimeLine", item.name.match(/ipfs(.*)\.365kqzs/)[1]);
+      this.lastTimeLine = item.name.match(/ipfs(.*)\.365kqzs/)[1];
       if (!item.title) this.playVideo(item.name, item.text);
     },
     async clarityOnSelect(item) {
@@ -370,8 +378,9 @@ export default {
         timeout: 1500,
       });
       let number = 0;
+      let successNumArr = [];
       let playInterface = [];
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 40; i++) {
         xiaojuAxios
           .get(`https://ipfs${i}.365kqzs.cn:9081/ipfs/${item.hash}`)
           .then(() => {
@@ -386,13 +395,19 @@ export default {
               playInterface.push({
                 name: `https://ipfs${i}.365kqzs.cn:9081/ipfs/${item.hash}`,
                 text: `${item.text} - ${item.name}`,
+                color: "",
               });
+              successNumArr.push(i);
               number += 1;
             }
           });
       }
       window.setTimeout(() => {
-        this.playInterface.title = `共${number}条可用播放链接`;
+        this.playInterface.title =
+          `共${number}条可用播放链接` +
+          (!validatenull(this.lastTimeLine)
+            ? "，上次用的是ipfs" + this.lastTimeLine
+            : "");
         this.playInterface.actions = playInterface;
         this.clarity.show = false;
         this.playInterface.show = true;
