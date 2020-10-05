@@ -87,7 +87,7 @@ export default {
     this.$nextTick(() => {
       window.setTimeout(async () => {
         await this.getData();
-      }, 1500);
+      }, 300);
     });
   },
   methods: {
@@ -126,7 +126,7 @@ export default {
           Toast("刷新成功");
           this.isLoading = false;
         });
-      }, 300);
+      }, 10);
     },
     topRecord(item, isCancel) {
       this.showOverlay = true;

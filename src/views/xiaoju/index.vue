@@ -362,7 +362,7 @@ export default {
     this.$nextTick(() => {
       window.setTimeout(async () => {
         await this.getData();
-      }, 500);
+      }, 300);
     });
   },
   methods: {
@@ -524,7 +524,7 @@ export default {
           Toast("刷新成功");
           this.isLoading = false;
         });
-      }, 300);
+      }, 10);
     },
     showPopup() {
       this.show = true;
@@ -585,9 +585,7 @@ export default {
             this.detailsId
           }",title:"${this.xiaojudata.title}",url:"${
             domain + e.data[0].hash
-          }",text:"${
-            e.episode + "-" + e.data[0].displayName
-          }",img:"${
+          }",text:"${e.episode + " - " + e.data[0].displayName}",img:"${
             this.xiaojudata.coverImageUrl
           }",source:"涅槃.小橘",time:Math.round(new Date()/1000),isPlayUrl:true});if(history.length>100)history.splice(100,1);history=JSON.stringify(history);writeFile("hiker://files/nirvana/nirvana_xj_history",history);`;
           let isClarity = false;
@@ -598,7 +596,7 @@ export default {
               this.detailsId
             }",title:"${this.xiaojudata.title}",url:"${
               domain + d.hash
-            }",text:"${e.episode + "-" + d.displayName}",img:"${
+            }",text:"${e.episode + " - " + d.displayName}",img:"${
               this.xiaojudata.coverImageUrl
             }",source:"涅槃.小橘",time:Math.round(new Date()/1000),isPlayUrl:true});if(history.length>100)history.splice(100,1);history=JSON.stringify(history);writeFile("hiker://files/nirvana/nirvana_xj_history",history);`;
             if (
@@ -673,7 +671,7 @@ export default {
           "hiker://files/nirvana/nirvana_xj_history",
           history
         );
-        console.log(playUrlArr)
+        console.log(playUrlArr);
         this.$nextTick(() => {
           window.fy_bridge_app.playVideos(JSON.stringify(playUrlArr));
         });
