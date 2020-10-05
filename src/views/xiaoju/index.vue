@@ -587,7 +587,7 @@ export default {
             ) {
               isClarity = true;
               playUrlArr.push({
-                title: this.xiaojudata.title + " - " + text,
+                title: this.xiaojudata.title.trim() + " - " + text.trim(),
                 url: playUrl,
                 use: true,
               });
@@ -595,11 +595,11 @@ export default {
               isClarity = true;
               playUrlArr.push({
                 title:
-                  this.xiaojudata.title +
+                  this.xiaojudata.title.trim() +
                   " - " +
-                  e.episode +
+                  e.episode.trim() +
                   " - " +
-                  d.displayName,
+                  d.displayName.trim(),
                 url: domain + d.hash,
                 use: false,
               });
@@ -608,11 +608,11 @@ export default {
           if (!isClarity)
             playUrlArr.push({
               title:
-                this.xiaojudata.title +
+                this.xiaojudata.title.trim() +
                 " - " +
-                e.episode +
+                e.episode.trim() +
                 " - " +
-                e.data[0].displayName,
+                e.data[0].displayName.trim(),
               url: domain + e.data[0].hash,
               use: false,
             });
