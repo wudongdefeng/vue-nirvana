@@ -579,15 +579,35 @@ export default {
           playUrl.match(/ipfs(.*)\.365kqzs/)[1]
         }.365kqzs.cn:9081/ipfs/`;
         this.episodes.forEach((e) => {
+          let hikerHistoryMethodsE = `let history=fetch("hiker://files/nirvana/nirvana_xj_history",{});if(history=='null'||history==null||history=='undefined'||history==undefined||history=='')history=[];else history=JSON.parse(history);history.forEach((h,index)=>{if(h.id=="${
+            this.detailsId
+          }")history.splice(index,1)});history.unshift({id:"${
+            this.detailsId
+          }",title:"${this.xiaojudata.title}",url:"${
+            domain + e.data[0].hash
+          }",text:"${
+            e.episode + "-" + e.data[0].displayName
+          }",img:"${
+            this.xiaojudata.coverImageUrl
+          }",source:"涅槃.小橘",time:Math.round(new Date()/1000),isPlayUrl:true});if(history.length>100)history.splice(100,1);history=JSON.stringify(history);writeFile("hiker://files/nirvana/nirvana_xj_history",history);`;
           let isClarity = false;
           e.data.forEach((d) => {
+            let hikerHistoryMethodsD = `let history=fetch("hiker://files/nirvana/nirvana_xj_history",{});if(history=='null'||history==null||history=='undefined'||history==undefined||history=='')history=[];else history=JSON.parse(history);history.forEach((h,index)=>{if(h.id=="${
+              this.detailsId
+            }")history.splice(index,1)});history.unshift({id:"${
+              this.detailsId
+            }",title:"${this.xiaojudata.title}",url:"${
+              domain + d.hash
+            }",text:"${e.episode + "-" + d.displayName}",img:"${
+              this.xiaojudata.coverImageUrl
+            }",source:"涅槃.小橘",time:Math.round(new Date()/1000),isPlayUrl:true});if(history.length>100)history.splice(100,1);history=JSON.stringify(history);writeFile("hiker://files/nirvana/nirvana_xj_history",history);`;
             if (
               d.hash == playUrl.split("ipfs/")[1] &&
               text.split(" - ")[1] == d.displayName
             ) {
               isClarity = true;
               playUrlArr.push({
-                title: this.xiaojudata.title.trim() + " - " + text.trim(),
+                title: this.xiaojudata.title + " - " + text,
                 url: playUrl,
                 use: true,
               });
@@ -595,26 +615,34 @@ export default {
               isClarity = true;
               playUrlArr.push({
                 title:
-                  this.xiaojudata.title.trim() +
+                  this.xiaojudata.title +
                   " - " +
-                  e.episode.trim() +
+                  e.episode +
                   " - " +
-                  d.displayName.trim(),
-                url: domain + d.hash,
+                  d.displayName,
+                // url: domain + d.hash,
+                originalUrl: `hiker://empty@lazyRule=.js:${hikerHistoryMethodsD}"${
+                  domain + d.hash
+                }"`,
                 use: false,
+                codeAndHeader: ";get",
               });
             }
           });
           if (!isClarity)
             playUrlArr.push({
               title:
-                this.xiaojudata.title.trim() +
+                this.xiaojudata.title +
                 " - " +
-                e.episode.trim() +
+                e.episode +
                 " - " +
-                e.data[0].displayName.trim(),
-              url: domain + e.data[0].hash,
+                e.data[0].displayName,
+              //url: domain + e.data[0].hash,
+              originalUrl: `hiker://empty@lazyRule=.js:${hikerHistoryMethodsE}"${
+                domain + e.data[0].hash
+              }"`,
               use: false,
+              codeAndHeader: ";get",
             });
         });
         let history = await window.request(
@@ -636,7 +664,6 @@ export default {
             source: "涅槃.小橘",
             time: Math.round(new Date() / 1000),
             isPlayUrl: true,
-            playUrlArr,
           },
           ...history,
         ];
@@ -646,7 +673,7 @@ export default {
           "hiker://files/nirvana/nirvana_xj_history",
           history
         );
-
+        console.log(playUrlArr)
         this.$nextTick(() => {
           window.fy_bridge_app.playVideos(JSON.stringify(playUrlArr));
         });
