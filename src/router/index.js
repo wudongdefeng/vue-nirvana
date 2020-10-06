@@ -27,6 +27,14 @@ const routes = [
       }
     },
     {
+      path: 'capuccilo/:id/:playCoding?',
+      component: () => import('@/views/capuccilo/index.vue'),
+      name: 'capuccilo',
+      meta: {
+        title: "卡布奇洛"
+      }
+    },
+    {
       path: 'history',
       component: () => import('@/views/history/index.vue'),
       name: 'history',

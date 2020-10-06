@@ -6,7 +6,7 @@ function resolve(dir) {
     return path.join(__dirname, dir)
 }
 
-const name = defaultSettings.title || '小竹科技' // page title
+const name = defaultSettings.title || '涅槃' // page title
 
 module.exports = {
     publicPath: process.env.NODE_ENV === "production" ? "./" : "/",
@@ -74,7 +74,14 @@ module.exports = {
                 pathRewrite: {
                     '^/nangua': '/'
                 }
-            }
+            },
+            '/capuccilo': {
+                target: "https://www.zhenbuka.com",
+                changOrigin: true,
+                pathRewrite: {
+                    '^/capuccilo': '/'
+                }
+            },
         }
     },
     configureWebpack: {

@@ -179,7 +179,7 @@ export default {
         JSON.stringify({ keywords: "花木兰", order_val: 1 })
       );
       console.log("getData -> encrypts", encrypts);
-      var dess = AES.decrypt(
+      var dess = AES.nanguadecrypt(
         "C94E36E1C184441968FFA4A1DAC51B5E1E907FDCC363E5B408600F99DC609C4AFC1CE1BD7A57B84BD940C00EA11FF30E011A108E24C29FFB65B7300CD7F5A09C9A8D97B20DE6840FCF037DF45C487717F349CA77B94717BD678BACC81F786F8F39ED00146383A550C6C5AF3094F1294727FE4102F8FF6A2E5875A6612FB16BF1B75B131CB07ADFC35342887FDD607532B104DEE9A7F9BA3DFEDEC52E4416B47C"
       );
       console.log("getData -> dess", dess);
@@ -210,7 +210,7 @@ export default {
         },
       }).then((res) => {
         console.log(res);
-        let data = JSON.parse(AES.decrypt(res.data.data.response_key));
+        let data = JSON.parse(AES.nanguadecrypt(res.data.data.response_key));
         console.log("getData -> data", data);
         // let data = res.data.data.programme;
         // let classifications = [...data.classifications];

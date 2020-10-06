@@ -10,7 +10,11 @@
         style="min-height: calc(100vh - 46px)"
       >
         <div class="box" style="min-height: calc(100vh - 46px)">
-          <van-swipe-cell v-for="(item, index) in historyArr" :key="index" right-width="150">
+          <van-swipe-cell
+            v-for="(item, index) in historyArr"
+            :key="index"
+            right-width="150"
+          >
             <van-card
               :desc="'来源：' + (item.source || '未知来源')"
               :title="item.title ? item.title.replace(/[\n\r\t]/g, '') : ''"
@@ -23,7 +27,11 @@
                 />
               </template>
               <template #price>
-                {{ item.title ? "点击恢复到播放\t" + item.text.replace(/[\n\r\t]/g, "") : "" }}
+                {{
+                  item.title
+                    ? "点击恢复到播放\t" + item.text.replace(/[\n\r\t]/g, "")
+                    : ""
+                }}
               </template>
               <template #tag v-if="item.isTop">
                 <van-tag color="rgba(32, 18, 217, 255)" style="font-weight: 700"
@@ -109,7 +117,10 @@ export default {
         let xj_history = this.fetchSringToObject(
           "hiker://files/nirvana/nirvana_xj_history"
         );
-        let historyArr = [...xx_history, ...xj_history];
+        let capuccilo_history = this.fetchSringToObject(
+          "hiker://files/nirvana/nirvana_capuccilo_history"
+        );
+        let historyArr = [...xx_history, ...xj_history, ...capuccilo_history];
         historyArr = historyArr.sort((a, b) => b.time - a.time);
         this.historyArr = historyArr;
         this.showOverlay = false;
@@ -176,6 +187,29 @@ export default {
         this.getData();
         if (isCancel) Toast("取消成功");
         else Toast("置顶成功");
+      } else if (item.source == "涅槃.卡布奇洛") {
+        let capuccilo_history = this.fetchSringToObject(
+          "hiker://files/nirvana/nirvana_capuccilo_history"
+        );
+        capuccilo_history.forEach((h) => {
+          if (h.id == item.id && !isCancel) {
+            h.originalTime = h.time;
+            h.time = 100000000000000;
+            h.isTop = true;
+          }
+          if (h.id == item.id && isCancel) {
+            h.time = h.originalTime;
+            h.isTop = false;
+          }
+        });
+        capuccilo_history = JSON.stringify(capuccilo_history);
+        window.fy_bridge_app.writeFile(
+          "hiker://files/nirvana/nirvana_capuccilo_history",
+          capuccilo_history
+        );
+        this.getData();
+        if (isCancel) Toast("取消成功");
+        else Toast("置顶成功");
       } else {
         if (isCancel) Toast("取消失败，未知来源");
         else Toast("置顶失败，未知来源");
@@ -211,6 +245,20 @@ export default {
         window.fy_bridge_app.writeFile(
           "hiker://files/nirvana/nirvana_xj_history",
           xj_history
+        );
+        this.getData();
+        Toast("删除成功");
+      } else if (item.source == "涅槃.卡布奇洛") {
+        let capuccilo_history = this.fetchSringToObject(
+          "hiker://files/nirvana/nirvana_capuccilo_history"
+        );
+        capuccilo_history.forEach((h, i) => {
+          if (h.id == item.id) capuccilo_history.splice(i, 1);
+        });
+        capuccilo_history = JSON.stringify(capuccilo_history);
+        window.fy_bridge_app.writeFile(
+          "hiker://files/nirvana/nirvana_capuccilo_history",
+          capuccilo_history
         );
         this.getData();
         Toast("删除成功");
