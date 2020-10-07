@@ -120,7 +120,15 @@ export default {
         let capuccilo_history = this.fetchSringToObject(
           "hiker://files/nirvana/nirvana_capuccilo_history"
         );
-        let historyArr = [...xx_history, ...xj_history, ...capuccilo_history];
+        let diga_history = this.fetchSringToObject(
+          "hiker://files/nirvana/nirvana_diga_history"
+        );
+        let historyArr = [
+          ...xx_history,
+          ...xj_history,
+          ...capuccilo_history,
+          ...diga_history,
+        ];
         historyArr = historyArr.sort((a, b) => b.time - a.time);
         this.historyArr = historyArr;
         this.showOverlay = false;
@@ -210,6 +218,29 @@ export default {
         this.getData();
         if (isCancel) Toast("取消成功");
         else Toast("置顶成功");
+      } else if (item.source == "涅槃.迪迦") {
+        let diga_history = this.fetchSringToObject(
+          "hiker://files/nirvana/nirvana_diga_history"
+        );
+        diga_history.forEach((h) => {
+          if (h.id == item.id && !isCancel) {
+            h.originalTime = h.time;
+            h.time = 100000000000000;
+            h.isTop = true;
+          }
+          if (h.id == item.id && isCancel) {
+            h.time = h.originalTime;
+            h.isTop = false;
+          }
+        });
+        diga_history = JSON.stringify(diga_history);
+        window.fy_bridge_app.writeFile(
+          "hiker://files/nirvana/nirvana_diga_history",
+          diga_history
+        );
+        this.getData();
+        if (isCancel) Toast("取消成功");
+        else Toast("置顶成功");
       } else {
         if (isCancel) Toast("取消失败，未知来源");
         else Toast("置顶失败，未知来源");
@@ -259,6 +290,20 @@ export default {
         window.fy_bridge_app.writeFile(
           "hiker://files/nirvana/nirvana_capuccilo_history",
           capuccilo_history
+        );
+        this.getData();
+        Toast("删除成功");
+      } else if (item.source == "涅槃.迪迦") {
+        let diga_history = this.fetchSringToObject(
+          "hiker://files/nirvana/nirvana_diga_history"
+        );
+        diga_history.forEach((h, i) => {
+          if (h.id == item.id) diga_history.splice(i, 1);
+        });
+        diga_history = JSON.stringify(diga_history);
+        window.fy_bridge_app.writeFile(
+          "hiker://files/nirvana/nirvana_diga_history",
+          diga_history
         );
         this.getData();
         Toast("删除成功");

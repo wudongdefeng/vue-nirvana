@@ -35,6 +35,14 @@ const routes = [
       }
     },
     {
+      path: 'diga/:id/:playCoding?',
+      component: () => import('@/views/diga/index.vue'),
+      name: 'diga',
+      meta: {
+        title: "迪迦"
+      }
+    },
+    {
       path: 'history',
       component: () => import('@/views/history/index.vue'),
       name: 'history',

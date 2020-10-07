@@ -37,12 +37,12 @@
           <div class="box">
             <div class="detail">
               <div class="header-title">
-                <span class="title">{{ capuccilodata.title }}</span>
+                <span class="title">{{ digadata.title }}</span>
               </div>
               <div>
-                <!-- <span class="subtitle-item">{{ capuccilodata.area }}</span>
+                <!-- <span class="subtitle-item">{{ digadata.area }}</span>
                 <span class="subtitle-item dot">{{
-                  capuccilodata.updateTime
+                  digadata.updateTime
                 }}</span> -->
                 <span
                   :class="index == 0 ? 'subtitle-item' : 'subtitle-item dot'"
@@ -52,14 +52,14 @@
                 >
               </div>
               <div class="updateTime">
-                <span>{{ capuccilodata.updateTime }}</span>
+                <span>{{ digadata.updateTime }}</span>
               </div>
             </div>
             <div class="pic">
               <div
                 class="cover"
                 :style="
-                  'background-image: url(' + capuccilodata.coverImageUrl + ');'
+                  'background-image: url(' + digadata.coverImageUrl + ');'
                 "
               />
             </div>
@@ -101,7 +101,7 @@
         </div>
         <van-collapse v-model="activeNames" accordion class="introduction">
           <van-collapse-item title="简介" name="1">{{
-            capuccilodata.introduction
+            digadata.introduction
           }}</van-collapse-item>
         </van-collapse>
       </van-pull-refresh>
@@ -209,10 +209,10 @@ import { Toast, ImagePreview } from "vant";
 import ScrollBar from "@better-scroll/scroll-bar";
 import cheerio from "cheerio";
 import axios from "axios";
+import moment from "moment";
 import store from "@/store";
 import CryptoJS from "crypto-js";
 import { validatenull } from "@/utils/validate";
-import AES from "@/utils/AES";
 
 BScroll.use(ScrollBar);
 
@@ -251,7 +251,7 @@ export default {
       activeNames: "",
       show: false,
       subtitleArr: [],
-      capuccilodata: {
+      digadata: {
         title: "",
         introduction: "",
         coverImageUrl: "",
@@ -299,21 +299,28 @@ export default {
         //   cookie += c + ";";
         // });
         res = await window.request(
-          `https://www.zhenbuka.com/voddetail/${this.detailsId}`
+          `https://www.zxzj.me/detail/${this.detailsId}`
         );
         $ = cheerio.load(res);
       } else {
-        res = await axios.get(`/capuccilo/voddetail/${this.detailsId}`);
+        res = await axios.get(`/diga/voddetail/${this.detailsId}`);
         $ = cheerio.load(res.data);
       }
-      this.capuccilodata.title = $("h1.title").text();
-      store.dispatch("bar/setTitle", this.capuccilodata.title + " - 卡布奇洛");
-      this.capuccilodata.updateTime = $(".data").eq(3).text();
-      // this.capuccilodata.area = $(".data").eq(0).text();
+      this.digadata.title = $("h1.title").text();
+      store.dispatch("bar/setTitle", this.digadata.title + " - 迪迦");
+      this.digadata.updateTime =
+        "更新：" +
+        moment(
+          $(".data")
+            .eq(3)
+            .text()
+            .match(/.*：(.*)/)[1]
+        ).format("YYYY-MM-DD");
+      // this.digadata.area = $(".data").eq(0).text();
       let subtitleArr = [];
-      let $list = $(".data").eq(0).find("a");
-      for (let i = 0; i < $list.length; i++) {
-        subtitleArr.push($list.eq(i).text());
+      let tagList = $(".data").eq(0).text().split("/");
+      for (let i = 0; i < tagList.length; i++) {
+        subtitleArr.push(tagList[i].match(/.*：(.*)/)[1]);
       }
       // $list = $(".data").eq(0).find("a");
       // for (let i = 0; i < $list.length; i++) {
@@ -321,29 +328,26 @@ export default {
       // }
       // subtitleArr.push($(".data").eq(3).text());
       this.subtitleArr = subtitleArr;
-      this.capuccilodata.introduction = $(".detail-content").text();
-      this.capuccilodata.coverImageUrl = $(".stui-content__thumb img").attr(
-        "src"
+      this.digadata.introduction = $(".detail-content").text();
+      this.digadata.coverImageUrl = $(".stui-content__thumb img").attr(
+        "data-original"
       );
-      if ($(".playlist").length > 0) {
-        $list = $(".playlist");
+      if (
+        $(".stui-content__playlist").length > 0 &&
+        $(".stui-vodlist__head").length > 1
+      ) {
+        let $list = $(".stui-vodlist__head");
         let playSource = [];
-        for (let i = 0; i < $list.length; i++) {
+        for (let i = 0; i < $list.length - 1; i++) {
           playSource.push({
-            text: $list
-              .eq(i)
-              .find(".title")
-              .text()
-              .replace(/不卡/g, "卡布奇洛")
-              .replace(/\[推荐\]/g, "👍")
-              .replace(/\[不推荐\]/g, "🖐"),
+            text: $list.eq(i).find("h3").text(),
             value: i,
           });
         }
         this.playSource = playSource;
         let allEpisodes = [];
-        for (let i = 0; i < $list.length; i++) {
-          let $list2 = $list.eq(i).find(".stui-content__playlist li");
+        for (let i = 0; i < $list.length - 1; i++) {
+          let $list2 = $(".stui-content__playlist").eq(i).find("li");
           allEpisodes[i] = [];
           for (let j = 0; j < $list2.length; j++) {
             allEpisodes[i].push({
@@ -445,59 +449,75 @@ export default {
       document.body.scrollTop = -parseInt(top, 10);
       document.documentElement.scrollTop = -parseInt(top, 10);
     },
-    async sixpan(id) {
-      if (window.fy_bridge_app) {
-        let sixpan = await window.request(
-          `https://api.nixingle.com/zhenbuka/api/sixDisk.php?id=${id}`
-        );
-        sixpan = JSON.parse(sixpan);
-        return sixpan.url;
+    async ty(requestUrl, referer) {
+      function strRevers(n) {
+        return n.split("").reverse();
       }
-    },
-    async qqpic(id) {
-      if (window.fy_bridge_app) {
-        let qqpic = await window.request(
-          `https://api.nixingle.com/zhenbuka/api/resMid.php?id=${id}`,
-          {
-            headers: {
-              "user-agent":
-                "Mozilla/5.0 (Linux; U; Android 10; zh-cn; M2006J10C Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/10.8 Mobile Safari/537.36",
-            },
-            method: "POST",
-            body: "type=url",
-          }
-        );
-        return AES.capucciloDecrypt(qqpic);
+      function decodeStr(n) {
+        var e = function n(e, t) {
+            return e + t;
+          },
+          t = (function n(e, t) {
+            return e / t;
+          })(
+            (function n(e, t) {
+              return e - t;
+            })(n.length, 6),
+            2
+          );
+        return n.substring(0, t) + n.substring(e(t, 6));
       }
-    },
-    async niuxyun(id, referer) {
-      if (window.fy_bridge_app) {
-        let one = await window.request(
-          `https://api.nixingle.com/jiekou/zbk-bkby/jx.php?id=${id}`,
-          {
-            headers: {
-              referer: referer,
-              method: "GET",
+      function htoStr(n) {
+        for (
+          var e = function n(e, t) {
+              return e < t;
             },
+            t = function n(e, t) {
+              return e + t;
+            },
+            r = function n(e, t) {
+              return e === t;
+            },
+            i = "AkG",
+            o = function n(e, t) {
+              return e + t;
+            },
+            c = "",
+            u = 0;
+          e(u, n.length);
+          u = t(u, 2)
+        )
+          if (r(i, "WSX")) break;
+          else {
+            var f = o(n[u], n[u + 1]);
+            f = parseInt(f, 16);
+            c += String.fromCharCode(f);
           }
-        );
-        let twoUrl =
-          "https://api.nixingle.com/jiekou/zbk-bkby/" +
-          one.match(/u="(.*)"/)[1];
-        let two = await window.request(twoUrl, {
+        return c;
+      }
+
+      function jie(n) {
+        return (n = strRevers(n)), (n = htoStr(n)), decodeStr(n);
+      }
+      if (window.fy_bridge_app) {
+        let res = await window.request(requestUrl, {
           headers: {
             referer: referer,
             method: "GET",
           },
         });
-        return two.match(/url:.*"(.*)"/)[1];
+        const $ = cheerio.load(res);
+        let _url = "";
+        let scriptFragment = $("script").eq(4).html();
+        await eval(scriptFragment + `_url = url;`);
+        return jie(_url);
       }
     },
     async playVideo(url, text) {
       window.setTimeout(async () => {
         if (window.fy_bridge_app) {
           let history = await window.request(
-            "hiker://files/nirvana/nirvana_capuccilo_history",
+            "hiker://files/nirvana/nirvana_diga_history",
             {}
           );
           if (validatenull(history)) history = [];
@@ -508,11 +528,11 @@ export default {
           history = [
             {
               id: this.detailsId,
-              title: this.capuccilodata.title.trim(),
+              title: this.digadata.title.trim(),
               url: url,
               text: text.trim(),
-              img: this.capuccilodata.coverImageUrl,
-              source: "涅槃.卡布奇洛",
+              img: this.digadata.coverImageUrl,
+              source: "涅槃.迪迦",
               time: Math.round(new Date() / 1000),
               isPlayUrl: false,
             },
@@ -521,69 +541,68 @@ export default {
           if (history.length > 100) history.splice(100, 1);
           history = JSON.stringify(history);
           window.fy_bridge_app.writeFile(
-            "hiker://files/nirvana/nirvana_capuccilo_history",
+            "hiker://files/nirvana/nirvana_diga_history",
             history
           );
-          let res = await window.request(`https://www.zhenbuka.com/${url}`);
+          let res = await window.request(`https://www.zxzj.me/${url}`);
           const $ = cheerio.load(res);
           let playerData = "";
-          let scriptFragment = $("script").eq(11).html();
+          let scriptFragment = $(".stui-player__video script").eq(0).html();
           eval(scriptFragment + `;playerData = player_data`);
           let playUrl = "";
           let playUrlArr = [];
           switch (playerData.from) {
-            case "zuidam3u8":
-              playUrl = playerData.url;
+            case "ty2":
+              playUrl = await this.ty(
+                playerData.url,
+                `https://www.zxzj.me/${url}`
+              );
               break;
-            case "baidupan":
+            case "yunpan":
               this.showOverlay = false;
               window.location.href = playerData.url;
               return;
-            case "niuxyun":
-              playUrl = await this.niuxyun(
+            case "ty189":
+              playUrl = await this.ty(
                 playerData.url,
-                `https://www.zhenbuka.com/${url}`
+                `https://www.zxzj.me/${url}`
               );
-              break;
-            case "qqpic":
-              playUrl = await this.qqpic(playerData.url);
-              break;
-            case "sixpan":
-              playUrl = await this.sixpan(playerData.url);
               break;
             default:
               Toast("还没适配该接口，可复制链接发给我尝试适配。");
               break;
           }
-          let hikerCustomizeMethods = `eval(getCryptoJS());function capucciloDecrypt(word){let key=CryptoJS.enc.Utf8.parse("1234567898882222");let iv=CryptoJS.enc.Utf8.parse("8NONwyJtHesysWpM");let decrypt=CryptoJS.AES.decrypt(word,key,{iv:iv,mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7})return decrypt.toString(CryptoJS.enc.Utf8)}function sixpan(id){let sixpan=fetch("https://api.nixingle.com/zhenbuka/api/sixDisk.php?id="+id,{});sixpan=JSON.parse(sixpan);return sixpan.url}function qqpic(id){let qqpic=fetch("https://api.nixingle.com/zhenbuka/api/resMid.php?id="+id,{headers:{"user-agent":"Mozilla/5.0 (Linux; U; Android 10; zh-cn; M2006J10C Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/10.8 Mobile Safari/537.36",},method:"POST",body:"type=url"});return capucciloDecrypt(qqpic)}function niuxyun(id,referer){let one=fetch("https://api.nixingle.com/jiekou/zbk-bkby/jx.php?id="+id,{headers:{referer:referer,method:"GET"}});let twoUrl="https://api.nixingle.com/jiekou/zbk-bkby/"+one.match(/u="(.*)"/)[1];let two=fetch(twoUrl,{headers:{referer:referer,method:"GET"}});return two.match(/url:.*"(.*)"/)[1]}`;
+          let hikerCustomizeMethods = `function ty(requestUrl,referer){function strRevers(n){return n.split("").reverse()}function decodeStr(n){var e=function n(e,t){return e+t},t=(function n(e,t){return e/t})((function n(e,t){return e-t})(n.length,6),2);return n.substring(0,t)+n.substring(e(t,6))}function htoStr(n){for(var e=function n(e,t){return e<t},t=function n(e,t){return e+t},r=function n(e,t){return e===t},i="AkG",o=function n(e,t){return e+t},c="",u=0;e(u,n.length);u=t(u,2))if(r(i,"WSX"))break;else{var f=o(n[u],n[u+1]);f=parseInt(f,16);c+=String.fromCharCode(f)}return c}function jie(n){return(n=strRevers(n)),(n=htoStr(n)),decodeStr(n)}let res=fetch(requestUrl,{headers:{referer:referer,method:"GET",},});let _url="";let scriptFragment=parseDomForHtml(res,"script,4&&Html");eval(scriptFragment+"_url = url;");return jie(_url)}`;
           this.episodes.forEach((e) => {
-            let hikerRequestMethods = `let res=fetch("https://www.zhenbuka.com/${e.url}",{});let playerData="";let scriptFragment=parseDomForHtml(res,"script,11&&Html");eval(scriptFragment+";playerData = player_data");let playUrl="";switch(playerData.from){case"zuidam3u8":playUrl=playerData.url;break;case"niuxyun":playUrl=niuxyun(playerData.url,"https://www.zhenbuka.com/${e.url}");break;case"qqpic":playUrl=qqpic(playerData.url);break;case"sixpan":playUrl=sixpan(playerData.url);break;default:break}`;
-            let hikerHistoryMethods = `let history=fetch("hiker://files/nirvana/nirvana_capuccilo_history",{});if(history=='null'||history==null||history=='undefined'||history==undefined||history=='')history=[];else history=JSON.parse(history);history.forEach((h,index)=>{if(h.id=="${
+            let hikerRequestMethods = `let res=fetch("https://www.zxzj.me/${e.url}",{});let playerData="";let scriptFragment=parseDomForHtml(res,".stui-player__video&&script,0&&Html");eval(scriptFragment+";playerData = player_data");let playUrl="";switch(playerData.from){case"ty2":playUrl=ty(playerData.url,"https://www.zxzj.me/${e.url}");break;case"ty189":playUrl=ty(playerData.url,"https://www.zxzj.me/${e.url}");break;default:break}`;
+            let hikerHistoryMethods = `let history=fetch("hiker://files/nirvana/nirvana_diga_history",{});if(history=='null'||history==null||history=='undefined'||history==undefined||history=='')history=[];else history=JSON.parse(history);history.forEach((h,index)=>{if(h.id=="${
               this.detailsId
             }")history.splice(index,1)});history.unshift({id:"${
               this.detailsId
-            }",title:"${this.capuccilodata.title.trim()}",url:"${
+            }",title:"${this.digadata.title.trim()}",url:"${
               e.url
             }",text:"${e.text.trim()}",img:"${
-              this.capuccilodata.coverImageUrl
-            }",source:"涅槃.卡布奇洛",time:Math.round(new Date()/1000),isPlayUrl:false,});if(history.length>100)history.splice(100,1);history=JSON.stringify(history);writeFile("hiker://files/nirvana/nirvana_capuccilo_history",history);`;
+              this.digadata.coverImageUrl
+            }",source:"涅槃.迪迦",time:Math.round(new Date()/1000),isPlayUrl:false,});if(history.length>100)history.splice(100,1);history=JSON.stringify(history);writeFile("hiker://files/nirvana/nirvana_diga_history",history);`;
             if (e.text.trim() == text.trim()) {
               playUrlArr.push({
-                title: this.capuccilodata.title.trim() + " - " + e.text.trim(),
+                title: this.digadata.title.trim() + " - " + e.text.trim(),
                 url: playUrl,
                 use: true,
                 codeAndHeader: ";get",
               });
             } else {
               playUrlArr.push({
-                title: this.capuccilodata.title.trim() + " - " + e.text.trim(),
+                title: this.digadata.title.trim() + " - " + e.text.trim(),
                 use: false,
                 originalUrl: `hiker://empty@lazyRule=.js:${hikerCustomizeMethods}${hikerRequestMethods}${hikerHistoryMethods}playUrl;`,
                 codeAndHeader: ";get",
               });
             }
           });
-          window.fy_bridge_app.playVideos(JSON.stringify(playUrlArr));
+          this.$nextTick(() => {
+            window.fy_bridge_app.playVideos(JSON.stringify(playUrlArr));
+          });
           this.showOverlay = false;
         } else window.location.href = url;
       }, 300);
