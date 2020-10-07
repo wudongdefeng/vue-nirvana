@@ -276,7 +276,7 @@ export default {
             );
             playCoding = playCoding.toString(CryptoJS.enc.Utf8);
             let playObj = JSON.parse(playCoding);
-            this.$router.push({ path: `/capuccilo/${this.$route.params.id}` });
+            this.$router.push({ path: `/diga/${this.$route.params.id}` });
             window.setTimeout(async () => {
               this.showOverlay = true;
               this.playVideo(playObj.url, playObj.text);
